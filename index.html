@@ -839,6 +839,16 @@
             transform: scale(0.98);
         }
     </style>
+
+    <!-- Telegram WebApp API -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Set Telegram header color when WebApp is ready
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.setHeaderColor('#D9271B');
+            window.Telegram.WebApp.ready();
+        }
+    </script>
 </head>
 <body>
 
