@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>TikTok Style</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Lottie Web Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -126,6 +128,41 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Welcome Slide */
+        .welcome-slide {
+            height: 100vh;
+            width: 100vw;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            overflow: hidden;
+            padding: 20px;
+            text-align: center;
+        }
+        .welcome-text {
+            font-size: 22px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 30px;
+            line-height: 1.4;
+            max-width: 300px;
+        }
+        .welcome-subtext {
+            font-size: 14px;
+            color: #888;
+            margin-top: 20px;
+        }
+        .lottie-container {
+            width: 200px;
+            height: 200px;
+            margin-bottom: 20px;
+        }
+
         /* Side Actions */
         .side-actions {
             position: absolute;
@@ -143,6 +180,10 @@
             color: #fff;
             font-size: 12px;
             cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .side-action:active {
+            transform: scale(0.9);
         }
         .side-action svg {
             width: 32px;
@@ -169,6 +210,12 @@
             font-size: 14px;
             color: #ccc;
             line-height: 1.4;
+        }
+        .video-id-tag {
+            font-size: 11px;
+            color: #666;
+            margin-top: 6px;
+            font-family: monospace;
         }
 
         /* Bottom Nav */
@@ -350,7 +397,7 @@
         .auth-modal .modal-btn {
             background: #0088cc;
         }
-    
+
         /* Preloader SVG Styles */
         .preloader-container {
             width: 150px;
@@ -398,6 +445,52 @@
             width: 24px;
             height: 24px;
             fill: #fff;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(40,40,40,0.95);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Deep Link Overlay */
+        .deep-link-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: rgba(0,170,255,0.15);
+            border-bottom: 1px solid rgba(0,170,255,0.3);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 150;
+            backdrop-filter: blur(4px);
+        }
+        .deep-link-overlay.active {
+            display: flex;
+        }
+        .deep-link-overlay span {
+            color: #0af;
+            font-size: 13px;
+            font-weight: 500;
         }
 
     </style>
@@ -491,6 +584,11 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         </div>
     </div>
 
+    <!-- Deep Link Indicator -->
+    <div class="deep-link-overlay" id="deep-link-overlay">
+        <span>🔗 Открыто по ссылке</span>
+    </div>
+
     <!-- Sound Toggle -->
     <div class="sound-toggle" id="global-sound-toggle" onclick="toggleGlobalSound()">
         <svg viewBox="0 0 24 24" id="global-sound-icon"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
@@ -506,15 +604,15 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
     <!-- Settings Screen -->
     <div id="settings-screen">
         <div class="settings-header">Настройки</div>
-        <div class="settings-item" onclick="showAuthModal()">
+        <div class="settings-item" onclick="handleRestrictedAction()">
             <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
             <span>Избранное</span>
         </div>
-        <div class="settings-item" onclick="showAuthModal()">
+        <div class="settings-item" onclick="handleRestrictedAction()">
             <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
             <span>Репосты</span>
         </div>
-        <div class="settings-item" onclick="showAuthModal()">
+        <div class="settings-item" onclick="handleRestrictedAction()">
             <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             <span>Понравившиеся</span>
         </div>
@@ -539,13 +637,16 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         </div>
     </div>
 
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
     <!-- Bottom Navigation -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="showFeed()" id="nav-home">
             <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
             <span>Главная</span>
         </div>
-        <div class="nav-item" onclick="showAuthModal()" id="nav-messages">
+        <div class="nav-item" onclick="handleRestrictedAction()" id="nav-messages">
             <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
             <span>Сообщения</span>
             <div class="msg-badge" id="msg-badge"></div>
@@ -557,7 +658,42 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
     </div>
 
     <script>
-        // Инициализация Telegram WebApp
+        // =====================
+        // VIDEO IDs CONFIG
+        // =====================
+        const VIDEO_IDS = [
+            'XBxacfcd2', 'XBxac4ca4', 'XBxac81e7', 'XBxaeccbc', 'XBxaa87ff',
+            'XBxae4da3', 'XBxa16790', 'XBxa8f14e', 'XBxac9f0f', 'XBxa45c48',
+            'XBxad3d94', 'XBxa6512b', 'XBxac20ad', 'XBxac51ce', 'XBxaaab32',
+            'XBxa9bf31', 'XBxac74d9', 'XBxa70efd', 'XBxa6f492', 'XBxa1f0e3'
+        ];
+
+        // =====================
+        // DEEP LINK STATE
+        // =====================
+        let isDeepLinkMode = false;
+        let deepLinkVideoId = null;
+
+        // Parse startapp parameter from URL or Telegram initData
+        function getStartAppParam() {
+            // Try Telegram WebApp initData first
+            if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe) {
+                const startParam = Telegram.WebApp.initDataUnsafe.start_param;
+                if (startParam) return startParam;
+            }
+            // Fallback: parse URL query params
+            const urlParams = new URLSearchParams(window.location.search);
+            const startapp = urlParams.get('startapp');
+            if (startapp) return startapp;
+            // Also check for tgWebAppStartParam
+            const tgStart = urlParams.get('tgWebAppStartParam');
+            if (tgStart) return tgStart;
+            return null;
+        }
+
+        // =====================
+        // TELEGRAM WEBAPP INIT
+        // =====================
         if (window.Telegram && Telegram.WebApp) {
             Telegram.WebApp.ready();
             Telegram.WebApp.expand();
@@ -567,6 +703,7 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         const savedMsgCount = localStorage.getItem('tiktok_msg_count');
         let videosLoaded = false;
         let currentVideoIndex = 0;
+        let lottieAnimation = null;
 
         // Список видео из папки video
         const videoFiles = [
@@ -592,12 +729,74 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
             'video/20.mp4'
         ];
 
-        // Показываем прелоадер
+        // =====================
+        // TOAST NOTIFICATION
+        // =====================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // =====================
+        // COPY TO CLIPBOARD
+        // =====================
+        async function copyToClipboard(text) {
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                }
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                const success = document.execCommand('copy');
+                document.body.removeChild(textarea);
+                return success;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // =====================
+        // SHARE FUNCTION
+        // =====================
+        function shareVideo(videoId) {
+            const link = 'https://t.me/WB_Rate_bot/app?startapp=' + videoId;
+            copyToClipboard(link).then(success => {
+                if (success) {
+                    showToast('🔗 Ссылка скопирована!');
+                } else {
+                    showToast('Не удалось скопировать ссылку');
+                }
+            });
+        }
+
+        // =====================
+        // RESTRICTED ACTION (for deep link mode)
+        // =====================
+        function handleRestrictedAction() {
+            if (isDeepLinkMode) {
+                showAuthModal();
+            } else {
+                showAuthModal();
+            }
+        }
+
+        // =====================
+        // PRELOADER
+        // =====================
         setTimeout(() => {
             document.getElementById('preloader').classList.add('hidden');
             document.getElementById('video-feed').classList.add('active');
 
-            // Через 1.5 секунды показываем модальное окно ввода имени
             setTimeout(() => {
                 if (!savedUsername) {
                     document.getElementById('username-modal').classList.add('active');
@@ -606,9 +805,39 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
                     showMsgBadge();
                     loadVideos();
                 }
-            }, 1500);
-        }, 4000);
+            }, 500);
+        }, 5000);
 
+        // =====================
+        // WELCOME SLIDE
+        // =====================
+        function createWelcomeSlide(username) {
+            const slide = document.createElement('div');
+            slide.className = 'welcome-slide';
+            slide.dataset.index = 0;
+
+            const textDiv = document.createElement('div');
+            textDiv.className = 'welcome-text';
+            textDiv.textContent = 'Загружены рекомендации пользователя @' + username;
+
+            const lottieDiv = document.createElement('div');
+            lottieDiv.className = 'lottie-container';
+            lottieDiv.id = 'lottie-swipe';
+
+            const subtextDiv = document.createElement('div');
+            subtextDiv.className = 'welcome-subtext';
+            subtextDiv.textContent = 'Свайпайте вверх, чтобы смотреть';
+
+            slide.appendChild(textDiv);
+            slide.appendChild(lottieDiv);
+            slide.appendChild(subtextDiv);
+
+            return slide;
+        }
+
+        // =====================
+        // LOAD VIDEOS
+        // =====================
         function loadVideos() {
             if (videosLoaded) return;
             videosLoaded = true;
@@ -616,14 +845,34 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
             const wrapper = document.getElementById('videos-wrapper');
             wrapper.innerHTML = '';
 
+            const username = localStorage.getItem('tiktok_username') || 'user';
+
+            // Создаем приветственный слайд вместо первого видео
+            const welcomeSlide = createWelcomeSlide(username);
+            wrapper.appendChild(welcomeSlide);
+
+            // Инициализируем Lottie анимацию
+            if (typeof lottie !== 'undefined') {
+                lottieAnimation = lottie.loadAnimation({
+                    container: document.getElementById('lottie-swipe'),
+                    renderer: 'svg',
+                    loop: true,
+                    autoplay: true,
+                    path: 'swipe.json'
+                });
+            }
+
+            // Создаем слайды для видео
             videoFiles.forEach((src, index) => {
+                const videoId = VIDEO_IDS[index];
                 const slide = document.createElement('div');
                 slide.className = 'video-slide';
-                slide.dataset.index = index;
+                slide.dataset.index = index + 1;
+                slide.dataset.videoId = videoId;
 
                 const loading = document.createElement('div');
                 loading.className = 'video-loading';
-                loading.id = 'loading-' + index;
+                loading.id = 'loading-' + (index + 1);
                 loading.innerHTML = '<div class="spinner"></div><div>Загрузка...</div>';
 
                 const video = document.createElement('video');
@@ -637,7 +886,6 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
                 video.setAttribute('x5-playsinline', '');
                 video.style.display = 'none';
                 video.controls = false;
-                // Убираем стандартный прелоадер
                 video.poster = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
                 // Генерируем случайные лайки и комментарии (соотношение 5:1)
@@ -645,7 +893,7 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
                 const likes = comments * 5 + Math.floor(Math.random() * comments);
                 const formatNum = (n) => n >= 1000 ? (n/1000).toFixed(1).replace(/\.0$/, '') + 'K' : n;
 
-                // Создаём video-info для этого слайда
+                // Создаём video-info
                 const videoInfo = document.createElement('div');
                 videoInfo.className = 'video-info';
                 const usernames = [
@@ -657,23 +905,24 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
                 ];
                 const videoUsername = usernames[index % usernames.length];
                 videoInfo.innerHTML = `
-                    <div class="username" id="username-${index}">@${videoUsername}</div>
+                    <div class="username" id="username-${index + 1}">@${videoUsername}</div>
                     <div class="description">${getRandomDescription(index)}</div>
+                    <div class="video-id-tag">ID: ${videoId}</div>
                 `;
 
-                // Создаём side-actions для этого слайда
+                // Создаём side-actions
                 const sideActions = document.createElement('div');
                 sideActions.className = 'side-actions';
                 sideActions.innerHTML = `
-                    <div class="side-action" onclick="showAuthModal()">
+                    <div class="side-action" onclick="handleVideoAction('like', '${videoId}')">
                         <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                         <span>${formatNum(likes)}</span>
                     </div>
-                    <div class="side-action" onclick="showAuthModal()">
+                    <div class="side-action" onclick="handleVideoAction('comment', '${videoId}')">
                         <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         <span>${formatNum(comments)}</span>
                     </div>
-                    <div class="side-action" onclick="showAuthModal()">
+                    <div class="side-action" onclick="shareVideo('${videoId}')">
                         <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
                         <span>Поделиться</span>
                     </div>
@@ -682,12 +931,8 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
                 video.addEventListener('loadeddata', () => {
                     loading.style.display = 'none';
                     video.style.display = 'block';
-                    if (index === 0) {
-                        video.play().catch(() => {});
-                    }
                 });
 
-                // Также обрабатываем canplay для более быстрого старта
                 video.addEventListener('canplay', () => {
                     loading.style.display = 'none';
                     video.style.display = 'block';
@@ -705,21 +950,73 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
 
                 // Клик/тап по слайду для паузы/воспроизведения
                 slide.addEventListener('click', (e) => {
-                    // Игнорируем если клик по боковым кнопкам
                     if (e.target.closest('.side-actions')) return;
                     togglePlayPause(video, slide);
                 });
             });
 
-            // Apply global sound state to all videos
+            // Apply global sound state
             document.querySelectorAll('.video-slide video').forEach(v => {
                 v.muted = !globalSoundEnabled;
             });
 
             updateGlobalSoundButton();
 
-            // Отслеживание скролла для автовоспроизведения
+            // Отслеживание скролла
             wrapper.addEventListener('scroll', handleScroll);
+
+            // Check for deep link after videos loaded
+            handleDeepLink();
+        }
+
+        // =====================
+        // HANDLE VIDEO ACTION
+        // =====================
+        function handleVideoAction(action, videoId) {
+            if (isDeepLinkMode) {
+                showAuthModal();
+                return;
+            }
+            // Normal mode - just show auth modal for now
+            showAuthModal();
+        }
+
+        // =====================
+        // DEEP LINK HANDLING
+        // =====================
+        function handleDeepLink() {
+            const startParam = getStartAppParam();
+            if (!startParam) return;
+
+            // Check if it's a valid video ID
+            const videoIndex = VIDEO_IDS.indexOf(startParam);
+            if (videoIndex === -1) return;
+
+            // Activate deep link mode
+            isDeepLinkMode = true;
+            deepLinkVideoId = startParam;
+
+            // Show deep link indicator
+            document.getElementById('deep-link-overlay').classList.add('active');
+
+            // Scroll to the video (index + 1 because 0 is welcome slide)
+            const targetIndex = videoIndex + 1;
+            const wrapper = document.getElementById('videos-wrapper');
+            const slides = wrapper.querySelectorAll('.video-slide, .welcome-slide');
+
+            if (slides[targetIndex]) {
+                setTimeout(() => {
+                    slides[targetIndex].scrollIntoView({ behavior: 'auto' });
+                    currentVideoIndex = targetIndex;
+
+                    // Auto-play the video
+                    const video = slides[targetIndex].querySelector('video');
+                    if (video) {
+                        video.muted = !globalSoundEnabled;
+                        video.play().catch(() => {});
+                    }
+                }, 500);
+            }
         }
 
         function getRandomDescription(index) {
@@ -728,90 +1025,82 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
 
         function handleScroll() {
             const wrapper = document.getElementById('videos-wrapper');
-            const slides = wrapper.querySelectorAll('.video-slide');
+            const slides = wrapper.querySelectorAll('.video-slide, .welcome-slide');
             const height = window.innerHeight;
 
             slides.forEach((slide, index) => {
                 const video = slide.querySelector('video');
-                if (!video) return;
 
                 const rect = slide.getBoundingClientRect();
-                // Видео считается активным если оно занимает большую часть экрана
                 const isVisible = rect.top >= -height * 0.3 && rect.top <= height * 0.3;
 
                 if (isVisible && index !== currentVideoIndex) {
                     currentVideoIndex = index;
 
-                    // Проверяем: если это 20-е видео (индекс 19), показываем auth-modal
-                    if (index === 19) {
+                    // Last video (index 20) shows auth modal
+                    if (index === 20) {
                         showAuthModal();
                         return;
                     }
 
-                    // Пауза всех видео
+                    // Pause all videos
                     slides.forEach(s => {
                         const v = s.querySelector('video');
                         if (v) {
                             v.pause();
-                            // Убираем иконку паузы
                             const icon = s.querySelector('.pause-icon');
                             if (icon) icon.remove();
                         }
                     });
-                    // Apply global sound state
-                    video.muted = !globalSoundEnabled;
 
-                    // Воспроизведение текущего
-                    video.play().catch(() => {});
+                    if (video) {
+                        video.muted = !globalSoundEnabled;
+                        video.play().catch(() => {});
+                    }
                 }
             });
         }
 
-        
-function togglePlayPause(video, slide) {
-    if (video.paused) {
-        video.play().catch(() => {});
-        // Убираем иконку паузы если есть
-        const icon = slide.querySelector('.pause-icon');
-        if (icon) icon.remove();
-    } else {
-        video.pause();
-        // Показываем иконку паузы
-        showPauseIcon(slide);
-    }
-}
-
-function showPauseIcon(slide) {
-    // Удаляем старую иконку если есть
-    const oldIcon = slide.querySelector('.pause-icon');
-    if (oldIcon) oldIcon.remove();
-
-    const icon = document.createElement('div');
-    icon.className = 'pause-icon';
-    icon.innerHTML = '<svg viewBox="0 0 24 24" style="width:60px;height:60px;fill:#fff;opacity:0.9;"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>';
-    icon.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;pointer-events:none;animation:fadeInPause 0.2s ease;';
-    slide.appendChild(icon);
-
-    // Авто-скрытие через 1 секунду
-    setTimeout(() => {
-        if (icon.parentNode) {
-            icon.style.transition = 'opacity 0.3s';
-            icon.style.opacity = '0';
-            setTimeout(() => icon.remove(), 300);
+        function togglePlayPause(video, slide) {
+            if (video.paused) {
+                video.play().catch(() => {});
+                const icon = slide.querySelector('.pause-icon');
+                if (icon) icon.remove();
+            } else {
+                video.pause();
+                showPauseIcon(slide);
+            }
         }
-    }, 1000);
-}
 
-const pauseStyle = document.createElement('style');
-pauseStyle.textContent = `
-    @keyframes fadeInPause {
-        from { opacity: 0; transform: translate(-50%,-50%) scale(0.8); }
-        to { opacity: 1; transform: translate(-50%,-50%) scale(1); }
-    }
-`;
-document.head.appendChild(pauseStyle);
+        function showPauseIcon(slide) {
+            const oldIcon = slide.querySelector('.pause-icon');
+            if (oldIcon) oldIcon.remove();
 
-function submitUsername() {
+            const icon = document.createElement('div');
+            icon.className = 'pause-icon';
+            icon.innerHTML = '<svg viewBox="0 0 24 24" style="width:60px;height:60px;fill:#fff;opacity:0.9;"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>';
+            icon.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;pointer-events:none;animation:fadeInPause 0.2s ease;';
+            slide.appendChild(icon);
+
+            setTimeout(() => {
+                if (icon.parentNode) {
+                    icon.style.transition = 'opacity 0.3s';
+                    icon.style.opacity = '0';
+                    setTimeout(() => icon.remove(), 300);
+                }
+            }, 1000);
+        }
+
+        const pauseStyle = document.createElement('style');
+        pauseStyle.textContent = `
+            @keyframes fadeInPause {
+                from { opacity: 0; transform: translate(-50%,-50%) scale(0.8); }
+                to { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+            }
+        `;
+        document.head.appendChild(pauseStyle);
+
+        function submitUsername() {
             const input = document.getElementById('username-input');
             let username = input.value.trim().replace('@', '');
 
@@ -827,7 +1116,6 @@ function submitUsername() {
             const msgCount = Math.floor(Math.random() * 9) + 1;
             localStorage.setItem('tiktok_msg_count', msgCount);
 
-            // Обновляем username во всех слайдах
             document.querySelectorAll('.video-info .username').forEach(el => {
                 el.textContent = '@' + username;
             });
@@ -890,7 +1178,6 @@ function submitUsername() {
             globalSoundEnabled = !globalSoundEnabled;
             const icon = document.getElementById('global-sound-icon');
 
-            // Update all videos
             document.querySelectorAll('.video-slide video').forEach(v => {
                 v.muted = !globalSoundEnabled;
             });
@@ -912,7 +1199,7 @@ function submitUsername() {
             }
         }
 
-        // Предзагрузка видео во время прелоадера
+        // Предзагрузка видео
         function preloadVideos() {
             videoFiles.forEach((src, index) => {
                 const preloaderVideo = document.createElement('video');
@@ -928,21 +1215,18 @@ function submitUsername() {
                 preloaderVideo.load();
                 document.body.appendChild(preloaderVideo);
 
-                // Удаляем предзагрузчик после загрузки метаданных
                 preloaderVideo.addEventListener('loadeddata', () => {
                     if (preloaderVideo.parentNode) {
                         preloaderVideo.parentNode.removeChild(preloaderVideo);
                     }
                 });
 
-                // Удаляем и при ошибке
                 preloaderVideo.addEventListener('error', () => {
                     if (preloaderVideo.parentNode) {
                         preloaderVideo.parentNode.removeChild(preloaderVideo);
                     }
                 });
 
-                // Таймаут на удаление через 15 сек
                 setTimeout(() => {
                     if (preloaderVideo.parentNode) {
                         preloaderVideo.parentNode.removeChild(preloaderVideo);
@@ -951,10 +1235,9 @@ function submitUsername() {
             });
         }
 
-        // Запускаем предзагрузку сразу
         preloadVideos();
 
-        // Добавляем анимацию shake
+        // Анимация shake
         const style = document.createElement('style');
         style.textContent = `
             @keyframes shake {
