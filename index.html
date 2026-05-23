@@ -180,10 +180,6 @@
             color: #fff;
             font-size: 12px;
             cursor: pointer;
-            transition: transform 0.1s;
-        }
-        .side-action:active {
-            transform: scale(0.9);
         }
         .side-action svg {
             width: 32px;
@@ -211,10 +207,10 @@
             color: #ccc;
             line-height: 1.4;
         }
-        .video-id-tag {
-            font-size: 11px;
-            color: #666;
-            margin-top: 6px;
+        .video-info .video-id {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
             font-family: monospace;
         }
 
@@ -447,13 +443,13 @@
             fill: #fff;
         }
 
-        /* Toast Notification */
+        /* Toast notification */
         .toast {
             position: fixed;
-            bottom: 100px;
+            bottom: 80px;
             left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background: rgba(40,40,40,0.95);
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0,0,0,0.85);
             color: #fff;
             padding: 12px 24px;
             border-radius: 24px;
@@ -469,30 +465,116 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* Deep Link Overlay */
-        .deep-link-overlay {
+        /* Share overlay */
+        .share-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            height: 50px;
-            background: rgba(0,170,255,0.15);
-            border-bottom: 1px solid rgba(0,170,255,0.3);
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
             display: none;
             justify-content: center;
-            align-items: center;
-            z-index: 150;
-            backdrop-filter: blur(4px);
+            align-items: flex-end;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
         }
-        .deep-link-overlay.active {
+        .share-overlay.active {
             display: flex;
         }
-        .deep-link-overlay span {
-            color: #0af;
+        .share-sheet {
+            background: #1a1a1a;
+            border-radius: 16px 16px 0 0;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            animation: slideUp 0.3s ease;
+        }
+        .share-sheet h3 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .share-options {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .share-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .share-option-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .share-option-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: #fff;
+        }
+        .share-option span {
+            font-size: 12px;
+            color: #aaa;
+        }
+        .share-link-box {
+            background: #000;
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .share-link-box input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
             font-size: 13px;
-            font-weight: 500;
+            outline: none;
+        }
+        .share-link-box button {
+            background: #fe2c55;
+            border: none;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .share-close {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 8px;
         }
 
+        /* Auth lock overlay for shared video */
+        .auth-lock-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.01);
+            z-index: 150;
+            display: none;
+        }
+        .auth-lock-overlay.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -584,11 +666,6 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         </div>
     </div>
 
-    <!-- Deep Link Indicator -->
-    <div class="deep-link-overlay" id="deep-link-overlay">
-        <span>🔗 Открыто по ссылке</span>
-    </div>
-
     <!-- Sound Toggle -->
     <div class="sound-toggle" id="global-sound-toggle" onclick="toggleGlobalSound()">
         <svg viewBox="0 0 24 24" id="global-sound-icon"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
@@ -597,103 +674,97 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
     <!-- Video Feed -->
     <div id="video-feed">
         <div class="videos-wrapper" id="videos-wrapper">
-            <!-- Видео будут добавлены динамически -->
+            <!-- Videos will be added dynamically -->
         </div>
     </div>
 
     <!-- Settings Screen -->
     <div id="settings-screen">
-        <div class="settings-header">Настройки</div>
-        <div class="settings-item" onclick="handleRestrictedAction()">
+        <div class="settings-header">Settings</div>
+        <div class="settings-item" onclick="showAuthModal()">
             <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-            <span>Избранное</span>
+            <span>Favorites</span>
         </div>
-        <div class="settings-item" onclick="handleRestrictedAction()">
+        <div class="settings-item" onclick="showAuthModal()">
             <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
-            <span>Репосты</span>
+            <span>Reposts</span>
         </div>
-        <div class="settings-item" onclick="handleRestrictedAction()">
+        <div class="settings-item" onclick="showAuthModal()">
             <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-            <span>Понравившиеся</span>
+            <span>Liked</span>
         </div>
     </div>
 
     <!-- Username Modal -->
     <div class="modal-overlay" id="username-modal">
         <div class="modal">
-            <h2>Введите имя пользователя</h2>
-            <p>для просмотра его рекомендаций</p>
+            <h2>Enter username</h2>
+            <p>to view their recommendations</p>
             <input type="text" id="username-input" placeholder="@username" maxlength="30" autocomplete="off">
-            <button class="modal-btn" onclick="submitUsername()">Продолжить</button>
+            <button class="modal-btn" onclick="submitUsername()">Continue</button>
         </div>
     </div>
 
     <!-- Auth Modal -->
     <div class="modal-overlay auth-modal" id="auth-modal">
         <div class="modal">
-            <h2>Требуется аккаунт</h2>
-            <p>Создайте свой аккаунт для доступа ко всем функциям</p>
-            <button class="modal-btn" onclick="window.open('https://t.me/test', '_blank')">Создать</button>
+            <h2>Account required</h2>
+            <p>Create your account to access all features</p>
+            <button class="modal-btn" onclick="window.open('https://t.me/test', '_blank')">Create</button>
+        </div>
+    </div>
+
+    <!-- Share Sheet -->
+    <div class="share-overlay" id="share-overlay" onclick="closeShareSheet(event)">
+        <div class="share-sheet" onclick="event.stopPropagation()">
+            <h3>Share video</h3>
+            <div class="share-options">
+                <div class="share-option" onclick="copyShareLink()">
+                    <div class="share-option-icon">
+                        <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    </div>
+                    <span>Copy</span>
+                </div>
+                <div class="share-option" onclick="shareToTelegram()">
+                    <div class="share-option-icon" style="background:#0088cc;">
+                        <svg viewBox="0 0 24 24"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+                    </div>
+                    <span>Telegram</span>
+                </div>
+            </div>
+            <div class="share-link-box">
+                <input type="text" id="share-link-input" readonly>
+                <button onclick="copyShareLink()">Copy</button>
+            </div>
+            <div class="share-close" onclick="closeShareSheet()">Cancel</div>
         </div>
     </div>
 
     <!-- Toast -->
     <div class="toast" id="toast"></div>
 
+    <!-- Auth Lock Overlay -->
+    <div class="auth-lock-overlay" id="auth-lock-overlay"></div>
+
     <!-- Bottom Navigation -->
     <div class="bottom-nav">
-        <div class="nav-item active" onclick="showFeed()" id="nav-home">
+        <div class="nav-item active" onclick="handleNavClick('home')" id="nav-home">
             <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-            <span>Главная</span>
+            <span>Home</span>
         </div>
-        <div class="nav-item" onclick="handleRestrictedAction()" id="nav-messages">
+        <div class="nav-item" onclick="handleNavClick('messages')" id="nav-messages">
             <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-            <span>Сообщения</span>
+            <span>Messages</span>
             <div class="msg-badge" id="msg-badge"></div>
         </div>
-        <div class="nav-item" onclick="showSettings()" id="nav-settings">
+        <div class="nav-item" onclick="handleNavClick('settings')" id="nav-settings">
             <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L3.16 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-            <span>Настройки</span>
+            <span>Settings</span>
         </div>
     </div>
 
     <script>
-        // =====================
-        // VIDEO IDs CONFIG
-        // =====================
-        const VIDEO_IDS = [
-            'XBxacfcd2', 'XBxac4ca4', 'XBxac81e7', 'XBxaeccbc', 'XBxaa87ff',
-            'XBxae4da3', 'XBxa16790', 'XBxa8f14e', 'XBxac9f0f', 'XBxa45c48',
-            'XBxad3d94', 'XBxa6512b', 'XBxac20ad', 'XBxac51ce', 'XBxaaab32',
-            'XBxa9bf31', 'XBxac74d9', 'XBxa70efd', 'XBxa6f492', 'XBxa1f0e3'
-        ];
-
-        // =====================
-        // DEEP LINK STATE
-        // =====================
-        let isDeepLinkMode = false;
-        let deepLinkVideoId = null;
-
-        // Parse startapp parameter from URL or Telegram initData
-        function getStartAppParam() {
-            // Try Telegram WebApp initData first
-            if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe) {
-                const startParam = Telegram.WebApp.initDataUnsafe.start_param;
-                if (startParam) return startParam;
-            }
-            // Fallback: parse URL query params
-            const urlParams = new URLSearchParams(window.location.search);
-            const startapp = urlParams.get('startapp');
-            if (startapp) return startapp;
-            // Also check for tgWebAppStartParam
-            const tgStart = urlParams.get('tgWebAppStartParam');
-            if (tgStart) return tgStart;
-            return null;
-        }
-
-        // =====================
-        // TELEGRAM WEBAPP INIT
-        // =====================
+        // Initialize Telegram WebApp
         if (window.Telegram && Telegram.WebApp) {
             Telegram.WebApp.ready();
             Telegram.WebApp.expand();
@@ -704,176 +775,207 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         let videosLoaded = false;
         let currentVideoIndex = 0;
         let lottieAnimation = null;
+        let videoIds = [];
+        let currentShareVideoId = null;
+        let isSharedVideoMode = false;
 
-        // Список видео из папки video
+        // Parse startapp parameter from URL
+        function getStartAppParam() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('startapp');
+        }
+
+        // Generate unique ID: XBxa + 5 random chars
+        function generateVideoId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = 'XBxa';
+            for (let i = 0; i < 5; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
         const videoFiles = [
-            'video/1.mp4',
-            'video/2.mp4',
-            'video/3.mp4',
-            'video/4.mp4',
-            'video/5.mp4',
-            'video/6.mp4',
-            'video/7.mp4',
-            'video/8.mp4',
-            'video/9.mp4',
-            'video/10.mp4',
-            'video/11.mp4',
-            'video/12.mp4',
-            'video/13.mp4',
-            'video/14.mp4',
-            'video/15.mp4',
-            'video/16.mp4',
-            'video/17.mp4',
-            'video/18.mp4',
-            'video/19.mp4',
-            'video/20.mp4'
+            'video/1.mp4', 'video/2.mp4', 'video/3.mp4', 'video/4.mp4', 'video/5.mp4',
+            'video/6.mp4', 'video/7.mp4', 'video/8.mp4', 'video/9.mp4', 'video/10.mp4',
+            'video/11.mp4', 'video/12.mp4', 'video/13.mp4', 'video/14.mp4', 'video/15.mp4',
+            'video/16.mp4', 'video/17.mp4', 'video/18.mp4', 'video/19.mp4', 'video/20.mp4'
         ];
 
-        // =====================
-        // TOAST NOTIFICATION
-        // =====================
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 2500);
-        }
-
-        // =====================
-        // COPY TO CLIPBOARD
-        // =====================
-        async function copyToClipboard(text) {
-            try {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    await navigator.clipboard.writeText(text);
-                    return true;
-                }
-                // Fallback
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                textarea.style.position = 'fixed';
-                textarea.style.opacity = '0';
-                document.body.appendChild(textarea);
-                textarea.select();
-                const success = document.execCommand('copy');
-                document.body.removeChild(textarea);
-                return success;
-            } catch (e) {
-                return false;
+        function generateVideoIds() {
+            videoIds = [];
+            const usedIds = new Set();
+            for (let i = 0; i < videoFiles.length; i++) {
+                let id;
+                do { id = generateVideoId(); } while (usedIds.has(id));
+                usedIds.add(id);
+                videoIds.push(id);
             }
+            localStorage.setItem('tiktok_video_ids', JSON.stringify(videoIds));
         }
 
-        // =====================
-        // SHARE FUNCTION
-        // =====================
-        function shareVideo(videoId) {
-            const link = 'https://t.me/WB_Rate_bot/app?startapp=' + videoId;
-            copyToClipboard(link).then(success => {
-                if (success) {
-                    showToast('🔗 Ссылка скопирована!');
-                } else {
-                    showToast('Не удалось скопировать ссылку');
-                }
-            });
-        }
-
-        // =====================
-        // RESTRICTED ACTION (for deep link mode)
-        // =====================
-        function handleRestrictedAction() {
-            if (isDeepLinkMode) {
-                showAuthModal();
+        function loadVideoIds() {
+            const saved = localStorage.getItem('tiktok_video_ids');
+            if (saved) {
+                videoIds = JSON.parse(saved);
+                if (videoIds.length !== videoFiles.length) generateVideoIds();
             } else {
-                showAuthModal();
+                generateVideoIds();
             }
         }
 
-        // =====================
-        // PRELOADER
-        // =====================
         setTimeout(() => {
             document.getElementById('preloader').classList.add('hidden');
             document.getElementById('video-feed').classList.add('active');
 
             setTimeout(() => {
-                if (!savedUsername) {
+                const startAppParam = getStartAppParam();
+                if (startAppParam && startAppParam.startsWith('XBxa')) {
+                    isSharedVideoMode = true;
+                    loadVideoIds();
+                    loadSharedVideo(startAppParam);
+                } else if (!savedUsername) {
                     document.getElementById('username-modal').classList.add('active');
                     document.getElementById('username-input').focus();
                 } else {
+                    loadVideoIds();
                     showMsgBadge();
                     loadVideos();
                 }
             }, 500);
         }, 5000);
 
-        // =====================
-        // WELCOME SLIDE
-        // =====================
+        function loadSharedVideo(videoId) {
+            const wrapper = document.getElementById('videos-wrapper');
+            wrapper.innerHTML = '';
+
+            let videoIndex = videoIds.indexOf(videoId);
+            if (videoIndex === -1) videoIndex = 0;
+
+            const src = videoFiles[videoIndex];
+            const slide = document.createElement('div');
+            slide.className = 'video-slide';
+            slide.dataset.index = 0;
+            slide.dataset.videoid = videoId;
+
+            const loading = document.createElement('div');
+            loading.className = 'video-loading';
+            loading.innerHTML = '<div class="spinner"></div><div>Loading...</div>';
+
+            const video = document.createElement('video');
+            video.src = src;
+            video.loop = true;
+            video.playsInline = true;
+            video.muted = true;
+            video.preload = 'auto';
+            video.setAttribute('playsinline', '');
+            video.setAttribute('webkit-playsinline', '');
+            video.setAttribute('x5-playsinline', '');
+            video.style.display = 'none';
+            video.controls = false;
+            video.poster = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+            const comments = Math.floor(Math.random() * 500) + 10;
+            const likes = comments * 5 + Math.floor(Math.random() * comments);
+            const formatNum = (n) => n >= 1000 ? (n/1000).toFixed(1).replace(/\.0$/, '') + 'K' : n;
+
+            const usernames = [
+                'bestvideos54', 'funnyclips99', 'trendsetter22', 'memeking77',
+                'dancemaster33', 'viralcontent11', 'lifestyleguru88', 'techreviewer44',
+                'foodiequeen66', 'travelbug55', 'fitnessfreak20', 'gamingpro30',
+                'musiclover12', 'artisticmind45', 'comedyclub78', 'petlover89',
+                'fashionista21', 'sciencegeek67', 'motivationhub90', 'storyteller01'
+            ];
+            const videoUsername = usernames[videoIndex % usernames.length];
+
+            const videoInfo = document.createElement('div');
+            videoInfo.className = 'video-info';
+            videoInfo.innerHTML = '<div class="username">@' + videoUsername + '</div><div class="description">Shared video</div><div class="video-id">ID: ' + videoId + '</div>';
+
+            const sideActions = document.createElement('div');
+            sideActions.className = 'side-actions';
+            sideActions.innerHTML = '<div class="side-action" onclick="handleSharedAction()"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span>' + formatNum(likes) + '</span></div><div class="side-action" onclick="handleSharedAction()"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>' + formatNum(comments) + '</span></div><div class="side-action" onclick="handleSharedAction()"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg><span>Share</span></div>';
+
+            video.addEventListener('loadeddata', () => { loading.style.display = 'none'; video.style.display = 'block'; });
+            video.addEventListener('canplay', () => { loading.style.display = 'none'; video.style.display = 'block'; });
+            video.addEventListener('error', () => { loading.innerHTML = '<div style="color:#555">Video not found</div>'; });
+
+            slide.appendChild(loading);
+            slide.appendChild(video);
+            slide.appendChild(videoInfo);
+            slide.appendChild(sideActions);
+            wrapper.appendChild(slide);
+
+            video.play().catch(() => {});
+            enableAuthLock();
+        }
+
+        function enableAuthLock() {
+            const wrapper = document.getElementById('videos-wrapper');
+            const lockOverlay = document.getElementById('auth-lock-overlay');
+
+            wrapper.style.overflow = 'hidden';
+            wrapper.style.touchAction = 'none';
+            lockOverlay.classList.add('active');
+
+            const actions = ['click', 'touchstart', 'touchmove', 'touchend', 'scroll', 'wheel'];
+            actions.forEach(action => {
+                lockOverlay.addEventListener(action, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showAuthModal();
+                }, { passive: false });
+            });
+
+            wrapper.addEventListener('scroll', (e) => { e.preventDefault(); showAuthModal(); }, { passive: false });
+        }
+
+        function handleSharedAction() { showAuthModal(); }
+
+        function handleNavClick(page) {
+            if (isSharedVideoMode) { showAuthModal(); return; }
+            if (page === 'home') showFeed();
+            else if (page === 'messages') showAuthModal();
+            else if (page === 'settings') showSettings();
+        }
+
         function createWelcomeSlide(username) {
             const slide = document.createElement('div');
             slide.className = 'welcome-slide';
             slide.dataset.index = 0;
-
-            const textDiv = document.createElement('div');
-            textDiv.className = 'welcome-text';
-            textDiv.textContent = 'Загружены рекомендации пользователя @' + username;
-
-            const lottieDiv = document.createElement('div');
-            lottieDiv.className = 'lottie-container';
-            lottieDiv.id = 'lottie-swipe';
-
-            const subtextDiv = document.createElement('div');
-            subtextDiv.className = 'welcome-subtext';
-            subtextDiv.textContent = 'Свайпайте вверх, чтобы смотреть';
-
-            slide.appendChild(textDiv);
-            slide.appendChild(lottieDiv);
-            slide.appendChild(subtextDiv);
-
+            slide.innerHTML = '<div class="welcome-text">Loaded recommendations for @' + username + '</div><div class="lottie-container" id="lottie-swipe"></div><div class="welcome-subtext">Swipe up to watch</div>';
             return slide;
         }
 
-        // =====================
-        // LOAD VIDEOS
-        // =====================
         function loadVideos() {
             if (videosLoaded) return;
             videosLoaded = true;
 
             const wrapper = document.getElementById('videos-wrapper');
             wrapper.innerHTML = '';
-
             const username = localStorage.getItem('tiktok_username') || 'user';
 
-            // Создаем приветственный слайд вместо первого видео
             const welcomeSlide = createWelcomeSlide(username);
             wrapper.appendChild(welcomeSlide);
 
-            // Инициализируем Lottie анимацию
             if (typeof lottie !== 'undefined') {
                 lottieAnimation = lottie.loadAnimation({
                     container: document.getElementById('lottie-swipe'),
-                    renderer: 'svg',
-                    loop: true,
-                    autoplay: true,
-                    path: 'swipe.json'
+                    renderer: 'svg', loop: true, autoplay: true, path: 'swipe.json'
                 });
             }
 
-            // Создаем слайды для видео
             videoFiles.forEach((src, index) => {
-                const videoId = VIDEO_IDS[index];
+                const videoId = videoIds[index];
                 const slide = document.createElement('div');
                 slide.className = 'video-slide';
                 slide.dataset.index = index + 1;
-                slide.dataset.videoId = videoId;
+                slide.dataset.videoid = videoId;
 
                 const loading = document.createElement('div');
                 loading.className = 'video-loading';
                 loading.id = 'loading-' + (index + 1);
-                loading.innerHTML = '<div class="spinner"></div><div>Загрузка...</div>';
+                loading.innerHTML = '<div class="spinner"></div><div>Loading...</div>';
 
                 const video = document.createElement('video');
                 video.src = src;
@@ -888,14 +990,10 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
                 video.controls = false;
                 video.poster = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
-                // Генерируем случайные лайки и комментарии (соотношение 5:1)
                 const comments = Math.floor(Math.random() * 500) + 10;
                 const likes = comments * 5 + Math.floor(Math.random() * comments);
                 const formatNum = (n) => n >= 1000 ? (n/1000).toFixed(1).replace(/\.0$/, '') + 'K' : n;
 
-                // Создаём video-info
-                const videoInfo = document.createElement('div');
-                videoInfo.className = 'video-info';
                 const usernames = [
                     'bestvideos54', 'funnyclips99', 'trendsetter22', 'memeking77',
                     'dancemaster33', 'viralcontent11', 'lifestyleguru88', 'techreviewer44',
@@ -904,43 +1002,18 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
                     'fashionista21', 'sciencegeek67', 'motivationhub90', 'storyteller01'
                 ];
                 const videoUsername = usernames[index % usernames.length];
-                videoInfo.innerHTML = `
-                    <div class="username" id="username-${index + 1}">@${videoUsername}</div>
-                    <div class="description">${getRandomDescription(index)}</div>
-                    <div class="video-id-tag">ID: ${videoId}</div>
-                `;
 
-                // Создаём side-actions
+                const videoInfo = document.createElement('div');
+                videoInfo.className = 'video-info';
+                videoInfo.innerHTML = '<div class="username" id="username-' + (index + 1) + '">@' + videoUsername + '</div><div class="description">' + getRandomDescription(index) + '</div><div class="video-id">ID: ' + videoId + '</div>';
+
                 const sideActions = document.createElement('div');
                 sideActions.className = 'side-actions';
-                sideActions.innerHTML = `
-                    <div class="side-action" onclick="handleVideoAction('like', '${videoId}')">
-                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                        <span>${formatNum(likes)}</span>
-                    </div>
-                    <div class="side-action" onclick="handleVideoAction('comment', '${videoId}')">
-                        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                        <span>${formatNum(comments)}</span>
-                    </div>
-                    <div class="side-action" onclick="shareVideo('${videoId}')">
-                        <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
-                        <span>Поделиться</span>
-                    </div>
-                `;
+                sideActions.innerHTML = '<div class="side-action" onclick="showAuthModal()"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span>' + formatNum(likes) + '</span></div><div class="side-action" onclick="showAuthModal()"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>' + formatNum(comments) + '</span></div><div class="side-action" onclick="openShareSheet(\'' + videoId + '\')"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg><span>Share</span></div>';
 
-                video.addEventListener('loadeddata', () => {
-                    loading.style.display = 'none';
-                    video.style.display = 'block';
-                });
-
-                video.addEventListener('canplay', () => {
-                    loading.style.display = 'none';
-                    video.style.display = 'block';
-                });
-
-                video.addEventListener('error', () => {
-                    loading.innerHTML = '<div style="color:#555">Видео не найдено</div>';
-                });
+                video.addEventListener('loadeddata', () => { loading.style.display = 'none'; video.style.display = 'block'; });
+                video.addEventListener('canplay', () => { loading.style.display = 'none'; video.style.display = 'block'; });
+                video.addEventListener('error', () => { loading.innerHTML = '<div style="color:#555">Video not found</div>'; });
 
                 slide.appendChild(loading);
                 slide.appendChild(video);
@@ -948,115 +1021,40 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
                 slide.appendChild(sideActions);
                 wrapper.appendChild(slide);
 
-                // Клик/тап по слайду для паузы/воспроизведения
                 slide.addEventListener('click', (e) => {
                     if (e.target.closest('.side-actions')) return;
                     togglePlayPause(video, slide);
                 });
             });
 
-            // Apply global sound state
-            document.querySelectorAll('.video-slide video').forEach(v => {
-                v.muted = !globalSoundEnabled;
-            });
-
+            document.querySelectorAll('.video-slide video').forEach(v => { v.muted = !globalSoundEnabled; });
             updateGlobalSoundButton();
-
-            // Отслеживание скролла
             wrapper.addEventListener('scroll', handleScroll);
-
-            // Check for deep link after videos loaded
-            handleDeepLink();
-        }
-
-        // =====================
-        // HANDLE VIDEO ACTION
-        // =====================
-        function handleVideoAction(action, videoId) {
-            if (isDeepLinkMode) {
-                showAuthModal();
-                return;
-            }
-            // Normal mode - just show auth modal for now
-            showAuthModal();
-        }
-
-        // =====================
-        // DEEP LINK HANDLING
-        // =====================
-        function handleDeepLink() {
-            const startParam = getStartAppParam();
-            if (!startParam) return;
-
-            // Check if it's a valid video ID
-            const videoIndex = VIDEO_IDS.indexOf(startParam);
-            if (videoIndex === -1) return;
-
-            // Activate deep link mode
-            isDeepLinkMode = true;
-            deepLinkVideoId = startParam;
-
-            // Show deep link indicator
-            document.getElementById('deep-link-overlay').classList.add('active');
-
-            // Scroll to the video (index + 1 because 0 is welcome slide)
-            const targetIndex = videoIndex + 1;
-            const wrapper = document.getElementById('videos-wrapper');
-            const slides = wrapper.querySelectorAll('.video-slide, .welcome-slide');
-
-            if (slides[targetIndex]) {
-                setTimeout(() => {
-                    slides[targetIndex].scrollIntoView({ behavior: 'auto' });
-                    currentVideoIndex = targetIndex;
-
-                    // Auto-play the video
-                    const video = slides[targetIndex].querySelector('video');
-                    if (video) {
-                        video.muted = !globalSoundEnabled;
-                        video.play().catch(() => {});
-                    }
-                }, 500);
-            }
         }
 
         function getRandomDescription(index) {
-            return 'Рекомендации пользователя @' + (localStorage.getItem('tiktok_username') || 'user');
+            return 'Recommendations for @' + (localStorage.getItem('tiktok_username') || 'user');
         }
 
         function handleScroll() {
+            if (isSharedVideoMode) return;
             const wrapper = document.getElementById('videos-wrapper');
             const slides = wrapper.querySelectorAll('.video-slide, .welcome-slide');
             const height = window.innerHeight;
 
             slides.forEach((slide, index) => {
                 const video = slide.querySelector('video');
-
                 const rect = slide.getBoundingClientRect();
                 const isVisible = rect.top >= -height * 0.3 && rect.top <= height * 0.3;
 
                 if (isVisible && index !== currentVideoIndex) {
                     currentVideoIndex = index;
-
-                    // Last video (index 20) shows auth modal
-                    if (index === 20) {
-                        showAuthModal();
-                        return;
-                    }
-
-                    // Pause all videos
+                    if (index === 20) { showAuthModal(); return; }
                     slides.forEach(s => {
                         const v = s.querySelector('video');
-                        if (v) {
-                            v.pause();
-                            const icon = s.querySelector('.pause-icon');
-                            if (icon) icon.remove();
-                        }
+                        if (v) { v.pause(); const icon = s.querySelector('.pause-icon'); if (icon) icon.remove(); }
                     });
-
-                    if (video) {
-                        video.muted = !globalSoundEnabled;
-                        video.play().catch(() => {});
-                    }
+                    if (video) { video.muted = !globalSoundEnabled; video.play().catch(() => {}); }
                 }
             });
         }
@@ -1075,52 +1073,87 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         function showPauseIcon(slide) {
             const oldIcon = slide.querySelector('.pause-icon');
             if (oldIcon) oldIcon.remove();
-
             const icon = document.createElement('div');
             icon.className = 'pause-icon';
             icon.innerHTML = '<svg viewBox="0 0 24 24" style="width:60px;height:60px;fill:#fff;opacity:0.9;"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>';
             icon.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;pointer-events:none;animation:fadeInPause 0.2s ease;';
             slide.appendChild(icon);
-
             setTimeout(() => {
-                if (icon.parentNode) {
-                    icon.style.transition = 'opacity 0.3s';
-                    icon.style.opacity = '0';
-                    setTimeout(() => icon.remove(), 300);
-                }
+                if (icon.parentNode) { icon.style.transition = 'opacity 0.3s'; icon.style.opacity = '0'; setTimeout(() => icon.remove(), 300); }
             }, 1000);
         }
 
         const pauseStyle = document.createElement('style');
-        pauseStyle.textContent = `
-            @keyframes fadeInPause {
-                from { opacity: 0; transform: translate(-50%,-50%) scale(0.8); }
-                to { opacity: 1; transform: translate(-50%,-50%) scale(1); }
-            }
-        `;
+        pauseStyle.textContent = '@keyframes fadeInPause { from { opacity: 0; transform: translate(-50%,-50%) scale(0.8); } to { opacity: 1; transform: translate(-50%,-50%) scale(1); } }';
         document.head.appendChild(pauseStyle);
+
+        // ===== SHARE SHEET =====
+        function openShareSheet(videoId) {
+            currentShareVideoId = videoId;
+            const shareLink = 'https://t.me/WB_Rate_bot/app?startapp=' + videoId;
+            document.getElementById('share-link-input').value = shareLink;
+            document.getElementById('share-overlay').classList.add('active');
+        }
+
+        function closeShareSheet(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('share-overlay').classList.remove('active');
+            currentShareVideoId = null;
+        }
+
+        function copyShareLink() {
+            const shareLink = document.getElementById('share-link-input').value;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(shareLink).then(() => {
+                    showToast('Link copied!');
+                    closeShareSheet();
+                }).catch(() => { fallbackCopy(shareLink); });
+            } else { fallbackCopy(shareLink); }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try { document.execCommand('copy'); showToast('Link copied!'); closeShareSheet(); }
+            catch (err) { showToast('Failed to copy link'); }
+            document.body.removeChild(textarea);
+        }
+
+        function shareToTelegram() {
+            const shareLink = document.getElementById('share-link-input').value;
+            const text = encodeURIComponent('Check out this video!');
+            const url = encodeURIComponent(shareLink);
+            window.open('https://t.me/share/url?url=' + url + '&text=' + text, '_blank');
+            closeShareSheet();
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 2000);
+        }
+        // ===== END SHARE =====
 
         function submitUsername() {
             const input = document.getElementById('username-input');
             let username = input.value.trim().replace('@', '');
-
             if (username.length < 1) {
                 input.style.borderColor = '#fe2c55';
                 input.style.animation = 'shake 0.3s';
                 setTimeout(() => { input.style.animation = ''; }, 300);
                 return;
             }
-
             localStorage.setItem('tiktok_username', username);
-
             const msgCount = Math.floor(Math.random() * 9) + 1;
             localStorage.setItem('tiktok_msg_count', msgCount);
-
-            document.querySelectorAll('.video-info .username').forEach(el => {
-                el.textContent = '@' + username;
-            });
+            document.querySelectorAll('.video-info .username').forEach(el => { el.textContent = '@' + username; });
             document.getElementById('username-modal').classList.remove('active');
-
+            loadVideoIds();
             showMsgBadge();
             loadVideos();
         }
@@ -1134,9 +1167,7 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
             }
         }
 
-        function showAuthModal() {
-            document.getElementById('auth-modal').classList.add('active');
-        }
+        function showAuthModal() { document.getElementById('auth-modal').classList.add('active'); }
 
         function showFeed() {
             document.getElementById('video-feed').classList.add('active');
@@ -1157,31 +1188,22 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
             document.getElementById(activeId).classList.add('active');
         }
 
-        // Закрытие модалок при клике вне
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', (e) => {
-                if (e.target === overlay && overlay.id !== 'username-modal') {
-                    overlay.classList.remove('active');
-                }
+                if (e.target === overlay && overlay.id !== 'username-modal') overlay.classList.remove('active');
             });
         });
 
-        // Enter в поле ввода
         document.getElementById('username-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') submitUsername();
         });
 
-        // Global sound state
         let globalSoundEnabled = false;
 
         function toggleGlobalSound() {
             globalSoundEnabled = !globalSoundEnabled;
             const icon = document.getElementById('global-sound-icon');
-
-            document.querySelectorAll('.video-slide video').forEach(v => {
-                v.muted = !globalSoundEnabled;
-            });
-
+            document.querySelectorAll('.video-slide video').forEach(v => { v.muted = !globalSoundEnabled; });
             if (globalSoundEnabled) {
                 icon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
             } else {
@@ -1192,16 +1214,12 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         function updateGlobalSoundButton() {
             const btn = document.getElementById('global-sound-toggle');
             const isFeedVisible = document.getElementById('video-feed').classList.contains('active');
-            if (isFeedVisible && videosLoaded) {
-                btn.classList.add('visible');
-            } else {
-                btn.classList.remove('visible');
-            }
+            if (isFeedVisible && videosLoaded) btn.classList.add('visible');
+            else btn.classList.remove('visible');
         }
 
-        // Предзагрузка видео
         function preloadVideos() {
-            videoFiles.forEach((src, index) => {
+            videoFiles.forEach((src) => {
                 const preloaderVideo = document.createElement('video');
                 preloaderVideo.src = src;
                 preloaderVideo.preload = 'auto';
@@ -1214,38 +1232,16 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
                 preloaderVideo.poster = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
                 preloaderVideo.load();
                 document.body.appendChild(preloaderVideo);
-
-                preloaderVideo.addEventListener('loadeddata', () => {
-                    if (preloaderVideo.parentNode) {
-                        preloaderVideo.parentNode.removeChild(preloaderVideo);
-                    }
-                });
-
-                preloaderVideo.addEventListener('error', () => {
-                    if (preloaderVideo.parentNode) {
-                        preloaderVideo.parentNode.removeChild(preloaderVideo);
-                    }
-                });
-
-                setTimeout(() => {
-                    if (preloaderVideo.parentNode) {
-                        preloaderVideo.parentNode.removeChild(preloaderVideo);
-                    }
-                }, 15000);
+                preloaderVideo.addEventListener('loadeddata', () => { if (preloaderVideo.parentNode) preloaderVideo.parentNode.removeChild(preloaderVideo); });
+                preloaderVideo.addEventListener('error', () => { if (preloaderVideo.parentNode) preloaderVideo.parentNode.removeChild(preloaderVideo); });
+                setTimeout(() => { if (preloaderVideo.parentNode) preloaderVideo.parentNode.removeChild(preloaderVideo); }, 15000);
             });
         }
 
         preloadVideos();
 
-        // Анимация shake
         const style = document.createElement('style');
-        style.textContent = `
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                25% { transform: translateX(-5px); }
-                75% { transform: translateX(5px); }
-            }
-        `;
+        style.textContent = '@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }';
         document.head.appendChild(style);
     </script>
 </body>
