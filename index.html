@@ -544,6 +544,53 @@
             opacity: 1;
         }
 
+        /* Single Video Poster */
+        .single-poster {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            z-index: 5;
+            transition: opacity 0.3s;
+        }
+        .single-poster.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Single Video Pause Icon */
+        .single-pause-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            width: 80px;
+            height: 80px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        .single-pause-icon.hidden {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.8);
+            pointer-events: none;
+        }
+        .single-pause-icon svg {
+            width: 36px;
+            height: 36px;
+            fill: #fff;
+            opacity: 0.95;
+        }
+
         /* Video ID badge */
         .video-id-badge {
             position: absolute;
@@ -665,6 +712,12 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
     <!-- Single Video View (for shared links) -->
     <div id="single-video-view" onclick="playSingleVideo()">
         <video id="single-video" loop playsinline></video>
+        <!-- Poster / первый кадр -->
+        <div class="single-poster" id="single-poster"></div>
+        <!-- Иконка паузы по центру -->
+        <div class="single-pause-icon" id="single-pause-icon">
+            <svg viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
+        </div>
         <div class="single-video-overlay">
             <button class="single-video-btn login" onclick="event.stopPropagation(); showAuthModal()">Войти</button>
             <button class="single-video-btn close" onclick="event.stopPropagation(); closeWebApp()">Закрыть</button>
@@ -836,6 +889,8 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
 
             const singleView = document.getElementById('single-video-view');
             const video = document.getElementById('single-video');
+            const poster = document.getElementById('single-poster');
+            const pauseIcon = document.getElementById('single-pause-icon');
             const nav = document.getElementById('bottom-nav');
             const soundBtn = document.getElementById('global-sound-toggle');
 
@@ -843,6 +898,26 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
             video.muted = false; // звук включен по умолчанию
             video.load();
             // НЕ запускаем автоматически — ждём первого клика пользователя
+
+            // Показываем poster и иконку паузы
+            poster.style.backgroundImage = '';
+            poster.classList.remove('hidden');
+            pauseIcon.classList.remove('hidden');
+
+            // Когда видео загрузит первый кадр — используем его как poster
+            video.addEventListener('loadeddata', function onLoad() {
+                video.removeEventListener('loadeddata', onLoad);
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth || 640;
+                    canvas.height = video.videoHeight || 360;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    poster.style.backgroundImage = 'url(' + canvas.toDataURL('image/jpeg', 0.8) + ')';
+                } catch(e) {
+                    // fallback: оставляем чёрный фон
+                }
+            }, { once: true });
 
             singleView.classList.add('active');
             nav.style.display = 'none';
@@ -1236,10 +1311,17 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
 
         function playSingleVideo() {
             const video = document.getElementById('single-video');
+            const poster = document.getElementById('single-poster');
+            const pauseIcon = document.getElementById('single-pause-icon');
+
             if (video.paused) {
                 video.play().catch(() => {});
+                poster.classList.add('hidden');
+                pauseIcon.classList.add('hidden');
             } else {
                 video.pause();
+                poster.classList.remove('hidden');
+                pauseIcon.classList.remove('hidden');
             }
         }
 
