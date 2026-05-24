@@ -437,6 +437,128 @@
             fill: #fff;
         }
 
+        /* Single Video View */
+        #single-video-view {
+            display: none;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+            overflow: hidden;
+            background: #000;
+        }
+        #single-video-view.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #single-video-view video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .single-video-overlay {
+            position: absolute;
+            bottom: 40px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 50;
+        }
+        .single-video-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .single-video-btn:active {
+            opacity: 0.8;
+        }
+        .single-video-btn.login {
+            background: #fe2c55;
+            color: #fff;
+        }
+        .single-video-btn.close {
+            background: #333;
+            color: #fff;
+        }
+
+        /* Share Modal */
+        .share-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .share-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .share-btn:active {
+            opacity: 0.8;
+        }
+        .share-btn.tg {
+            background: #0088cc;
+            color: #fff;
+        }
+        .share-btn.copy {
+            background: #333;
+            color: #fff;
+        }
+        .share-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: #fff;
+        }
+        .copy-toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .copy-toast.visible {
+            opacity: 1;
+        }
+
+        /* Video ID badge */
+        .video-id-badge {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            color: #888;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            z-index: 50;
+            font-family: monospace;
+        }
+
     </style>
 </head>
 <body>
@@ -540,6 +662,15 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         </div>
     </div>
 
+    <!-- Single Video View (for shared links) -->
+    <div id="single-video-view">
+        <video id="single-video" loop playsinline muted></video>
+        <div class="single-video-overlay">
+            <button class="single-video-btn login" onclick="showAuthModal()">Войти</button>
+            <button class="single-video-btn close" onclick="closeWebApp()">Закрыть</button>
+        </div>
+    </div>
+
     <!-- Tools Screen -->
     <div id="settings-screen">
         <div class="settings-header">Инструменты</div>
@@ -565,16 +696,6 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         </div>
     </div>
 
-    <!-- Username Modal -->
-    <div class="modal-overlay" id="username-modal">
-        <div class="modal">
-            <h2>Введите имя пользователя</h2>
-            <p>для просмотра его рекомендаций</p>
-            <input type="text" id="username-input" placeholder="@username" maxlength="30" autocomplete="off">
-            <button class="modal-btn" onclick="submitUsername()">Продолжить</button>
-        </div>
-    </div>
-
     <!-- Continue Modal -->
     <div class="modal-overlay" id="continue-modal">
         <div class="modal">
@@ -585,14 +706,13 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         </div>
     </div>
 
-    <!-- Share Modal -->
-    <div class="modal-overlay" id="share-modal">
+    <!-- Username Modal -->
+    <div class="modal-overlay" id="username-modal">
         <div class="modal">
-            <h2>Поделиться видео</h2>
-            <p id="share-link-text" style="font-size:12px;word-break:break-all;color:#888;margin-bottom:12px;"></p>
-            <button class="modal-btn" onclick="copyShareLink()" style="margin-bottom: 10px; background: #fe2c55;">Копировать ссылку</button>
-            <button class="modal-btn" onclick="shareInTelegram()" style="margin-bottom: 10px; background: #0088cc;">Поделиться в Telegram</button>
-            <button class="modal-btn" onclick="closeShareModal()" style="background: #333;">Закрыть</button>
+            <h2>Введите имя пользователя</h2>
+            <p>для просмотра его рекомендаций</p>
+            <input type="text" id="username-input" placeholder="@username" maxlength="30" autocomplete="off">
+            <button class="modal-btn" onclick="submitUsername()">Продолжить</button>
         </div>
     </div>
 
@@ -605,8 +725,29 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         </div>
     </div>
 
+    <!-- Share Modal -->
+    <div class="modal-overlay" id="share-modal">
+        <div class="modal">
+            <h2>Поделиться</h2>
+            <p id="share-text">Скопируйте ссылку или поделитесь в Telegram</p>
+            <div class="share-options">
+                <button class="share-btn tg" onclick="shareInTelegram()">
+                    <svg viewBox="0 0 24 24"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+                    Поделиться в Telegram
+                </button>
+                <button class="share-btn copy" onclick="copyShareLink()">
+                    <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    Скопировать ссылку
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Copy Toast -->
+    <div class="copy-toast" id="copy-toast">Ссылка скопирована!</div>
+
     <!-- Bottom Navigation -->
-    <div class="bottom-nav">
+    <div class="bottom-nav" id="bottom-nav">
         <div class="nav-item active" onclick="showFeed()" id="nav-home">
             <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
             <span>Главная</span>
@@ -634,74 +775,91 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         let videosLoaded = false;
         let currentVideoIndex = 0;
         let lottieAnimation = null;
+        let currentShareId = null;
+
+        // Генерация уникальных 6-значных ID для каждого видео
+        const videoIds = [
+            'A1B2C3', 'D4E5F6', 'G7H8I9', 'J0K1L2', 'M3N4O5',
+            'P6Q7R8', 'S9T0U1', 'V2W3X4', 'Y5Z6A7', 'B8C9D0',
+            'E1F2G3', 'H4I5J6', 'K7L8M9', 'N0O1P2', 'Q3R4S5',
+            'T6U7V8', 'W9X0Y1', 'Z2A3B4', 'C5D6E7', 'F8G9H0'
+        ];
 
         // Список видео из папки video
         const videoFiles = [
-            'video/1.mp4',
-            'video/2.mp4',
-            'video/3.mp4',
-            'video/4.mp4',
-            'video/5.mp4',
-            'video/6.mp4',
-            'video/7.mp4',
-            'video/8.mp4',
-            'video/9.mp4',
-            'video/10.mp4',
-            'video/11.mp4',
-            'video/12.mp4',
-            'video/13.mp4',
-            'video/14.mp4',
-            'video/15.mp4',
-            'video/16.mp4',
-            'video/17.mp4',
-            'video/18.mp4',
-            'video/19.mp4',
-            'video/20.mp4'
+            'video/1.mp4', 'video/2.mp4', 'video/3.mp4', 'video/4.mp4', 'video/5.mp4',
+            'video/6.mp4', 'video/7.mp4', 'video/8.mp4', 'video/9.mp4', 'video/10.mp4',
+            'video/11.mp4', 'video/12.mp4', 'video/13.mp4', 'video/14.mp4', 'video/15.mp4',
+            'video/16.mp4', 'video/17.mp4', 'video/18.mp4', 'video/19.mp4', 'video/20.mp4'
         ];
 
-        // Deep link handling - check for startapp parameter
-        function handleDeepLink() {
-            const initData = window.Telegram && Telegram.WebApp ? Telegram.WebApp.initDataUnsafe : null;
-            let videoId = null;
-
-            if (initData && initData.start_param) {
-                videoId = initData.start_param;
+        // Проверяем startapp параметр из Telegram
+        function getStartParam() {
+            if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe) {
+                return Telegram.WebApp.initDataUnsafe.start_param || '';
             }
-
-            if (!videoId) {
-                const hash = window.location.hash.replace('#', '');
-                const urlParams = new URLSearchParams(window.location.search);
-                videoId = hash || urlParams.get('startapp') || urlParams.get('video');
-            }
-
-            return videoId;
+            // Fallback для тестирования в браузере
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('startapp') || '';
         }
 
-        const deepLinkVideoId = handleDeepLink();
+        const startParam = getStartParam();
+        const isSharedVideo = startParam.length === 6 && videoIds.includes(startParam.toUpperCase());
 
         // Показываем прелоадер
         setTimeout(() => {
             document.getElementById('preloader').classList.add('hidden');
-            document.getElementById('video-feed').classList.add('active');
 
-            // If deep link video ID is present, load single video mode
-            if (deepLinkVideoId) {
-                loadSingleVideo(deepLinkVideoId);
-                return;
+            if (isSharedVideo) {
+                // Режим просмотра одного видео
+                showSingleVideo(startParam.toUpperCase());
+            } else {
+                // Обычный режим ленты
+                document.getElementById('video-feed').classList.add('active');
+
+                // Через 0.5 секунды показываем модальное окно
+                setTimeout(() => {
+                    if (!savedUsername) {
+                        document.getElementById('username-modal').classList.add('active');
+                        document.getElementById('username-input').focus();
+                    } else {
+                        document.getElementById('continue-username').textContent = '@' + savedUsername;
+                        document.getElementById('continue-modal').classList.add('active');
+                    }
+                }, 500);
             }
-
-            // Через 0.5 секунды показываем модальное окно
-            setTimeout(() => {
-                if (!savedUsername) {
-                    document.getElementById('username-modal').classList.add('active');
-                    document.getElementById('username-input').focus();
-                } else {
-                    // Показываем модальное окно продолжения для активации звука
-                    document.getElementById('continue-username').textContent = '@' + savedUsername;
-                    document.getElementById('continue-modal').classList.add('active');
-                }
-            }, 500);
         }, 5000);
+
+        function showSingleVideo(videoId) {
+            const videoIndex = videoIds.indexOf(videoId);
+            if (videoIndex === -1) return;
+
+            const singleView = document.getElementById('single-video-view');
+            const video = document.getElementById('single-video');
+            const nav = document.getElementById('bottom-nav');
+            const soundBtn = document.getElementById('global-sound-toggle');
+
+            video.src = videoFiles[videoIndex];
+            video.muted = !globalSoundEnabled;
+            video.load();
+            video.play().catch(() => {});
+
+            singleView.classList.add('active');
+            nav.style.display = 'none';
+            soundBtn.classList.add('visible');
+
+            // Скрываем все остальные экраны
+            document.getElementById('video-feed').classList.remove('active');
+            document.getElementById('settings-screen').classList.remove('active');
+        }
+
+        function closeWebApp() {
+            if (window.Telegram && Telegram.WebApp) {
+                Telegram.WebApp.close();
+            } else {
+                window.close();
+            }
+        }
 
         function createWelcomeSlide(username) {
             const slide = document.createElement('div');
@@ -755,11 +913,8 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
             videoFiles.forEach((src, index) => {
                 const slide = document.createElement('div');
                 slide.className = 'video-slide';
-                slide.dataset.index = index + 1; // +1 потому что 0 - приветственный слайд
-
-                // Generate unique 6-digit video ID (100000 + index)
-                const videoId = String(100000 + index);
-                slide.dataset.videoid = videoId;
+                slide.dataset.index = index + 1;
+                slide.dataset.videoid = videoIds[index];
 
                 const loading = document.createElement('div');
                 loading.className = 'video-loading';
@@ -777,13 +932,17 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
                 video.setAttribute('x5-playsinline', '');
                 video.style.display = 'none';
                 video.controls = false;
-                // Убираем стандартный прелоадер
                 video.poster = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
                 // Генерируем случайные лайки и комментарии (соотношение 5:1)
                 const comments = Math.floor(Math.random() * 500) + 10;
                 const likes = comments * 5 + Math.floor(Math.random() * comments);
                 const formatNum = (n) => n >= 1000 ? (n/1000).toFixed(1).replace(/\.0$/, '') + 'K' : n;
+
+                // ID бейдж
+                const idBadge = document.createElement('div');
+                idBadge.className = 'video-id-badge';
+                idBadge.textContent = 'ID: ' + videoIds[index];
 
                 // Создаём video-info для этого слайда
                 const videoInfo = document.createElement('div');
@@ -813,7 +972,7 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
                         <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         <span>${formatNum(comments)}</span>
                     </div>
-                    <div class="side-action" onclick="showShareModal('${videoId}')">
+                    <div class="side-action" onclick="openShareModal('${videoIds[index]}')">
                         <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
                         <span>Поделиться</span>
                     </div>
@@ -824,7 +983,6 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
                     video.style.display = 'block';
                 });
 
-                // Также обрабатываем canplay для более быстрого старта
                 video.addEventListener('canplay', () => {
                     loading.style.display = 'none';
                     video.style.display = 'block';
@@ -836,13 +994,13 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
 
                 slide.appendChild(loading);
                 slide.appendChild(video);
+                slide.appendChild(idBadge);
                 slide.appendChild(videoInfo);
                 slide.appendChild(sideActions);
                 wrapper.appendChild(slide);
 
                 // Клик/тап по слайду для паузы/воспроизведения
                 slide.addEventListener('click', (e) => {
-                    // Игнорируем если клик по боковым кнопкам
                     if (e.target.closest('.side-actions')) return;
                     togglePlayPause(video, slide);
                 });
@@ -872,84 +1030,122 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
                 const video = slide.querySelector('video');
 
                 const rect = slide.getBoundingClientRect();
-                // Слайд считается активным если он занимает большую часть экрана
                 const isVisible = rect.top >= -height * 0.3 && rect.top <= height * 0.3;
 
                 if (isVisible && index !== currentVideoIndex) {
                     currentVideoIndex = index;
 
-                    // Проверяем: если это последнее видео (индекс 20), показываем auth-modal
                     if (index === 20) {
                         showAuthModal();
                         return;
                     }
 
-                    // Пауза всех видео
                     slides.forEach(s => {
                         const v = s.querySelector('video');
                         if (v) {
                             v.pause();
-                            // Убираем иконку паузы
                             const icon = s.querySelector('.pause-icon');
                             if (icon) icon.remove();
                         }
                     });
 
-                    // Apply global sound state
                     if (video) {
                         video.muted = !globalSoundEnabled;
-                        // Воспроизведение текущего
                         video.play().catch(() => {});
                     }
                 }
             });
         }
 
-
-function togglePlayPause(video, slide) {
-    if (video.paused) {
-        video.play().catch(() => {});
-        // Убираем иконку паузы если есть
-        const icon = slide.querySelector('.pause-icon');
-        if (icon) icon.remove();
-    } else {
-        video.pause();
-        // Показываем иконку паузы
-        showPauseIcon(slide);
-    }
-}
-
-function showPauseIcon(slide) {
-    // Удаляем старую иконку если есть
-    const oldIcon = slide.querySelector('.pause-icon');
-    if (oldIcon) oldIcon.remove();
-
-    const icon = document.createElement('div');
-    icon.className = 'pause-icon';
-    icon.innerHTML = '<svg viewBox="0 0 24 24" style="width:60px;height:60px;fill:#fff;opacity:0.9;"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>';
-    icon.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;pointer-events:none;animation:fadeInPause 0.2s ease;';
-    slide.appendChild(icon);
-
-    // Авто-скрытие через 1 секунду
-    setTimeout(() => {
-        if (icon.parentNode) {
-            icon.style.transition = 'opacity 0.3s';
-            icon.style.opacity = '0';
-            setTimeout(() => icon.remove(), 300);
+        function togglePlayPause(video, slide) {
+            if (video.paused) {
+                video.play().catch(() => {});
+                const icon = slide.querySelector('.pause-icon');
+                if (icon) icon.remove();
+            } else {
+                video.pause();
+                showPauseIcon(slide);
+            }
         }
-    }, 1000);
-}
 
-const pauseStyle = document.createElement('style');
-pauseStyle.textContent = `
-    @keyframes fadeInPause {
-        from { opacity: 0; transform: translate(-50%,-50%) scale(0.8); }
-        to { opacity: 1; transform: translate(-50%,-50%) scale(1); }
-    }
-`;
-document.head.appendChild(pauseStyle);
+        function showPauseIcon(slide) {
+            const oldIcon = slide.querySelector('.pause-icon');
+            if (oldIcon) oldIcon.remove();
 
-function submitUsername() {
+            const icon = document.createElement('div');
+            icon.className = 'pause-icon';
+            icon.innerHTML = '<svg viewBox="0 0 24 24" style="width:60px;height:60px;fill:#fff;opacity:0.9;"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>';
+            icon.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;pointer-events:none;animation:fadeInPause 0.2s ease;';
+            slide.appendChild(icon);
+
+            setTimeout(() => {
+                if (icon.parentNode) {
+                    icon.style.transition = 'opacity 0.3s';
+                    icon.style.opacity = '0';
+                    setTimeout(() => icon.remove(), 300);
+                }
+            }, 1000);
+        }
+
+        const pauseStyle = document.createElement('style');
+        pauseStyle.textContent = `
+            @keyframes fadeInPause {
+                from { opacity: 0; transform: translate(-50%,-50%) scale(0.8); }
+                to { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+            }
+        `;
+        document.head.appendChild(pauseStyle);
+
+        // Share Modal Functions
+        function openShareModal(videoId) {
+            currentShareId = videoId;
+            document.getElementById('share-text').textContent = 'Видео ID: ' + videoId;
+            document.getElementById('share-modal').classList.add('active');
+        }
+
+        function getShareLink(videoId) {
+            return 'https://t.me/TikRayBot/app?startapp=' + videoId;
+        }
+
+        function shareInTelegram() {
+            if (!currentShareId) return;
+            const link = getShareLink(currentShareId);
+            const text = 'Посмотри это видео!';
+            const tgUrl = 'https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(text);
+            window.open(tgUrl, '_blank');
+            document.getElementById('share-modal').classList.remove('active');
+        }
+
+        function copyShareLink() {
+            if (!currentShareId) return;
+            const link = getShareLink(currentShareId);
+            navigator.clipboard.writeText(link).then(() => {
+                showCopyToast();
+                document.getElementById('share-modal').classList.remove('active');
+            }).catch(() => {
+                // Fallback для старых браузеров
+                const textarea = document.createElement('textarea');
+                textarea.value = link;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showCopyToast();
+                document.getElementById('share-modal').classList.remove('active');
+            });
+        }
+
+        function showCopyToast() {
+            const toast = document.getElementById('copy-toast');
+            toast.classList.add('visible');
+            setTimeout(() => {
+                toast.classList.remove('visible');
+            }, 2000);
+        }
+
+        function submitUsername() {
             const input = document.getElementById('username-input');
             let username = input.value.trim().replace('@', '');
 
@@ -965,7 +1161,6 @@ function submitUsername() {
             const msgCount = Math.floor(Math.random() * 9) + 1;
             localStorage.setItem('tiktok_msg_count', msgCount);
 
-            // Обновляем username во всех слайдах
             document.querySelectorAll('.video-info .username').forEach(el => {
                 el.textContent = '@' + username;
             });
@@ -991,6 +1186,8 @@ function submitUsername() {
         function showFeed() {
             document.getElementById('video-feed').classList.add('active');
             document.getElementById('settings-screen').classList.remove('active');
+            document.getElementById('single-video-view').classList.remove('active');
+            document.getElementById('bottom-nav').style.display = 'flex';
             updateNavActive('nav-home');
             updateGlobalSoundButton();
         }
@@ -998,6 +1195,8 @@ function submitUsername() {
         function showSettings() {
             document.getElementById('video-feed').classList.remove('active');
             document.getElementById('settings-screen').classList.add('active');
+            document.getElementById('single-video-view').classList.remove('active');
+            document.getElementById('bottom-nav').style.display = 'flex';
             updateNavActive('nav-settings');
             updateGlobalSoundButton();
         }
@@ -1018,180 +1217,11 @@ function submitUsername() {
             showAuthModal();
         }
 
-        let currentShareVideoId = '';
-
-        function showShareModal(videoId) {
-            currentShareVideoId = videoId;
-            const link = 'https://t.me/TikRayBot/app?startapp=' + videoId;
-            document.getElementById('share-link-text').textContent = link;
-            document.getElementById('share-modal').classList.add('active');
-        }
-
-        function closeShareModal() {
-            document.getElementById('share-modal').classList.remove('active');
-            currentShareVideoId = '';
-        }
-
-        function copyShareLink() {
-            const link = 'https://t.me/TikRayBot/app?startapp=' + currentShareVideoId;
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(link).then(() => {
-                    closeShareModal();
-                }).catch(() => {
-                    fallbackCopy(link);
-                });
-            } else {
-                fallbackCopy(link);
-            }
-        }
-
-        function fallbackCopy(text) {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-                document.execCommand('copy');
-            } catch (err) {}
-            document.body.removeChild(textarea);
-            closeShareModal();
-        }
-
-        function shareInTelegram() {
-            const link = 'https://t.me/TikRayBot/app?startapp=' + currentShareVideoId;
-            const text = encodeURIComponent('Посмотри это видео!');
-            const url = encodeURIComponent(link);
-            window.open('https://t.me/share/url?url=' + url + '&text=' + text, '_blank');
-        }
-
-        function loadSingleVideo(videoId) {
-            const index = parseInt(videoId) - 100000;
-
-            if (index < 0 || index >= videoFiles.length) {
-                loadVideos();
-                return;
-            }
-
-            videosLoaded = true;
-            const wrapper = document.getElementById('videos-wrapper');
-            wrapper.innerHTML = '';
-
-            // Disable scrolling
-            wrapper.style.overflowY = 'hidden';
-            wrapper.style.scrollSnapType = 'none';
-
-            const src = videoFiles[index];
-            const slide = document.createElement('div');
-            slide.className = 'video-slide';
-            slide.style.height = '100vh';
-            slide.style.width = '100vw';
-
-            const loading = document.createElement('div');
-            loading.className = 'video-loading';
-            loading.innerHTML = '<div class="spinner"></div><div>Загрузка...</div>';
-
-            const video = document.createElement('video');
-            video.src = src;
-            video.loop = true;
-            video.playsInline = true;
-            video.muted = true;
-            video.preload = 'auto';
-            video.setAttribute('playsinline', '');
-            video.setAttribute('webkit-playsinline', '');
-            video.setAttribute('x5-playsinline', '');
-            video.style.display = 'none';
-            video.controls = false;
-            video.poster = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-
-            const comments = Math.floor(Math.random() * 500) + 10;
-            const likes = comments * 5 + Math.floor(Math.random() * comments);
-            const formatNum = (n) => n >= 1000 ? (n/1000).toFixed(1).replace(/\.0$/, '') + 'K' : n;
-
-            const videoInfo = document.createElement('div');
-            videoInfo.className = 'video-info';
-            const usernames = [
-                'bestvideos54', 'funnyclips99', 'trendsetter22', 'memeking77',
-                'dancemaster33', 'viralcontent11', 'lifestyleguru88', 'techreviewer44',
-                'foodiequeen66', 'travelbug55', 'fitnessfreak20', 'gamingpro30',
-                'musiclover12', 'artisticmind45', 'comedyclub78', 'petlover89',
-                'fashionista21', 'sciencegeek67', 'motivationhub90', 'storyteller01'
-            ];
-            const videoUsername = usernames[index % usernames.length];
-            videoInfo.innerHTML = `
-                <div class="username">@${videoUsername}</div>
-                <div class="description">Рекомендации пользователя @${localStorage.getItem('tiktok_username') || 'user'}</div>
-            `;
-
-            const sideActions = document.createElement('div');
-            sideActions.className = 'side-actions';
-            sideActions.innerHTML = `
-                <div class="side-action" onclick="showAuthModal()">
-                    <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                    <span>${formatNum(likes)}</span>
-                </div>
-                <div class="side-action" onclick="showAuthModal()">
-                    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    <span>${formatNum(comments)}</span>
-                </div>
-                <div class="side-action" onclick="showShareModal('${videoId}')">
-                    <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
-                    <span>Поделиться</span>
-                </div>
-            `;
-
-            // Add deep-link action buttons overlay
-            const actionOverlay = document.createElement('div');
-            actionOverlay.style.cssText = 'position:absolute;bottom:100px;left:16px;right:16px;z-index:60;display:flex;gap:12px;justify-content:center;';
-            actionOverlay.innerHTML = `
-                <button onclick="showAuthModal()" style="flex:1;padding:14px;border-radius:10px;border:none;background:#fe2c55;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;">Войти</button>
-                <button onclick="closeWebApp()" style="flex:1;padding:14px;border-radius:10px;border:none;background:#333;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;">Закрыть</button>
-            `;
-
-            video.addEventListener('loadeddata', () => {
-                loading.style.display = 'none';
-                video.style.display = 'block';
-                video.play().catch(() => {});
-            });
-
-            video.addEventListener('canplay', () => {
-                loading.style.display = 'none';
-                video.style.display = 'block';
-            });
-
-            video.addEventListener('error', () => {
-                loading.innerHTML = '<div style="color:#555">Видео не найдено</div>';
-            });
-
-            slide.appendChild(loading);
-            slide.appendChild(video);
-            slide.appendChild(videoInfo);
-            slide.appendChild(sideActions);
-            slide.appendChild(actionOverlay);
-            wrapper.appendChild(slide);
-
-            // Apply global sound state
-            video.muted = !globalSoundEnabled;
-            updateGlobalSoundButton();
-        }
-
-        function closeWebApp() {
-            if (window.Telegram && Telegram.WebApp) {
-                Telegram.WebApp.close();
-            } else {
-                window.close();
-            }
-        }
-
         // Закрытие модалок при клике вне
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay && overlay.id !== 'username-modal' && overlay.id !== 'continue-modal') {
                     overlay.classList.remove('active');
-                    if (overlay.id === 'share-modal') {
-                        currentShareVideoId = '';
-                    }
                 }
             });
         });
@@ -1208,10 +1238,16 @@ function submitUsername() {
             globalSoundEnabled = !globalSoundEnabled;
             const icon = document.getElementById('global-sound-icon');
 
-            // Update all videos
+            // Update all videos in feed
             document.querySelectorAll('.video-slide video').forEach(v => {
                 v.muted = !globalSoundEnabled;
             });
+
+            // Update single video if active
+            const singleVideo = document.getElementById('single-video');
+            if (singleVideo) {
+                singleVideo.muted = !globalSoundEnabled;
+            }
 
             if (globalSoundEnabled) {
                 icon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
@@ -1223,7 +1259,8 @@ function submitUsername() {
         function updateGlobalSoundButton() {
             const btn = document.getElementById('global-sound-toggle');
             const isFeedVisible = document.getElementById('video-feed').classList.contains('active');
-            if (isFeedVisible && videosLoaded) {
+            const isSingleVisible = document.getElementById('single-video-view').classList.contains('active');
+            if ((isFeedVisible && videosLoaded) || isSingleVisible) {
                 btn.classList.add('visible');
             } else {
                 btn.classList.remove('visible');
@@ -1246,21 +1283,18 @@ function submitUsername() {
                 preloaderVideo.load();
                 document.body.appendChild(preloaderVideo);
 
-                // Удаляем предзагрузчик после загрузки метаданных
                 preloaderVideo.addEventListener('loadeddata', () => {
                     if (preloaderVideo.parentNode) {
                         preloaderVideo.parentNode.removeChild(preloaderVideo);
                     }
                 });
 
-                // Удаляем и при ошибке
                 preloaderVideo.addEventListener('error', () => {
                     if (preloaderVideo.parentNode) {
                         preloaderVideo.parentNode.removeChild(preloaderVideo);
                     }
                 });
 
-                // Таймаут на удаление через 15 сек
                 setTimeout(() => {
                     if (preloaderVideo.parentNode) {
                         preloaderVideo.parentNode.removeChild(preloaderVideo);
