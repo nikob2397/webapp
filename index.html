@@ -557,6 +557,16 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         </div>
     </div>
 
+    <!-- Continue Modal -->
+    <div class="modal-overlay" id="continue-modal">
+        <div class="modal">
+            <h2>Последний просмотр аккаунта <span id="continue-username"></span></h2>
+            <p>Хотите продолжить или сменить пользователя?</p>
+            <button class="modal-btn" onclick="continueUser()" style="margin-bottom: 10px; background: #fe2c55;">Продолжить</button>
+            <button class="modal-btn" onclick="switchUser()" style="background: #333;">Сменить</button>
+        </div>
+    </div>
+
     <!-- Username Modal -->
     <div class="modal-overlay" id="username-modal">
         <div class="modal">
@@ -635,14 +645,15 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
             document.getElementById('preloader').classList.add('hidden');
             document.getElementById('video-feed').classList.add('active');
 
-            // Через 1.5 секунды показываем модальное окно ввода имени
+            // Через 0.5 секунды показываем модальное окно
             setTimeout(() => {
                 if (!savedUsername) {
                     document.getElementById('username-modal').classList.add('active');
                     document.getElementById('username-input').focus();
                 } else {
-                    showMsgBadge();
-                    loadVideos();
+                    // Показываем модальное окно продолжения для активации звука
+                    document.getElementById('continue-username').textContent = '@' + savedUsername;
+                    document.getElementById('continue-modal').classList.add('active');
                 }
             }, 500);
         }, 5000);
@@ -947,10 +958,21 @@ function submitUsername() {
             document.getElementById(activeId).classList.add('active');
         }
 
+function continueUser() {
+            document.getElementById('continue-modal').classList.remove('active');
+            showMsgBadge();
+            loadVideos();
+        }
+
+        function switchUser() {
+            document.getElementById('continue-modal').classList.remove('active');
+            showAuthModal();
+        }
+
         // Закрытие модалок при клике вне
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', (e) => {
-                if (e.target === overlay && overlay.id !== 'username-modal') {
+                if (e.target === overlay && overlay.id !== 'username-modal' && overlay.id !== 'continue-modal') {
                     overlay.classList.remove('active');
                 }
             });
