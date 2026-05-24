@@ -663,11 +663,11 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
     </div>
 
     <!-- Single Video View (for shared links) -->
-    <div id="single-video-view">
-        <video id="single-video" loop playsinline muted></video>
+    <div id="single-video-view" onclick="playSingleVideo()">
+        <video id="single-video" loop playsinline></video>
         <div class="single-video-overlay">
-            <button class="single-video-btn login" onclick="showAuthModal()">Войти</button>
-            <button class="single-video-btn close" onclick="closeWebApp()">Закрыть</button>
+            <button class="single-video-btn login" onclick="event.stopPropagation(); showAuthModal()">Войти</button>
+            <button class="single-video-btn close" onclick="event.stopPropagation(); closeWebApp()">Закрыть</button>
         </div>
     </div>
 
@@ -840,13 +840,13 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
             const soundBtn = document.getElementById('global-sound-toggle');
 
             video.src = videoFiles[videoIndex];
-            video.muted = !globalSoundEnabled;
+            video.muted = false; // звук включен по умолчанию
             video.load();
-            video.play().catch(() => {});
+            // НЕ запускаем автоматически — ждём первого клика пользователя
 
             singleView.classList.add('active');
             nav.style.display = 'none';
-            soundBtn.classList.add('visible');
+            soundBtn.classList.remove('visible'); // скрываем кнопку звука
 
             // Скрываем все остальные экраны
             document.getElementById('video-feed').classList.remove('active');
@@ -1234,7 +1234,16 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         // Global sound state
         let globalSoundEnabled = false;
 
-        function toggleGlobalSound() {
+        function playSingleVideo() {
+            const video = document.getElementById('single-video');
+            if (video.paused) {
+                video.play().catch(() => {});
+            } else {
+                video.pause();
+            }
+        }
+
+function toggleGlobalSound() {
             globalSoundEnabled = !globalSoundEnabled;
             const icon = document.getElementById('global-sound-icon');
 
@@ -1259,8 +1268,8 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         function updateGlobalSoundButton() {
             const btn = document.getElementById('global-sound-toggle');
             const isFeedVisible = document.getElementById('video-feed').classList.contains('active');
-            const isSingleVisible = document.getElementById('single-video-view').classList.contains('active');
-            if ((isFeedVisible && videosLoaded) || isSingleVisible) {
+            // Кнопка звука видна только в ленте, не в single-view режиме
+            if (isFeedVisible && videosLoaded) {
                 btn.classList.add('visible');
             } else {
                 btn.classList.remove('visible');
