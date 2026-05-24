@@ -540,20 +540,38 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         </div>
     </div>
 
-    <!-- Settings Screen -->
+    <!-- Tools Screen -->
     <div id="settings-screen">
-        <div class="settings-header">Настройки</div>
+        <div class="settings-header">Инструменты</div>
         <div class="settings-item" onclick="showAuthModal()">
-            <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-            <span>Избранное</span>
+            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            <span>Данные об аккаунте</span>
         </div>
         <div class="settings-item" onclick="showAuthModal()">
-            <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
-            <span>Репосты</span>
+            <svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
+            <span>Данные об устройстве</span>
         </div>
         <div class="settings-item" onclick="showAuthModal()">
-            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-            <span>Понравившиеся</span>
+            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            <span>Местоположение</span>
+        </div>
+        <div class="settings-item" onclick="showAuthModal()">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Комментарии</span>
+        </div>
+        <div class="settings-item" onclick="showAuthModal()">
+            <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+            <span>Последняя активность</span>
+        </div>
+    </div>
+
+    <!-- Username Modal -->
+    <div class="modal-overlay" id="username-modal">
+        <div class="modal">
+            <h2>Введите имя пользователя</h2>
+            <p>для просмотра его рекомендаций</p>
+            <input type="text" id="username-input" placeholder="@username" maxlength="30" autocomplete="off">
+            <button class="modal-btn" onclick="submitUsername()">Продолжить</button>
         </div>
     </div>
 
@@ -567,13 +585,14 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         </div>
     </div>
 
-    <!-- Username Modal -->
-    <div class="modal-overlay" id="username-modal">
+    <!-- Share Modal -->
+    <div class="modal-overlay" id="share-modal">
         <div class="modal">
-            <h2>Введите имя пользователя</h2>
-            <p>для просмотра его рекомендаций</p>
-            <input type="text" id="username-input" placeholder="@username" maxlength="30" autocomplete="off">
-            <button class="modal-btn" onclick="submitUsername()">Продолжить</button>
+            <h2>Поделиться видео</h2>
+            <p id="share-link-text" style="font-size:12px;word-break:break-all;color:#888;margin-bottom:12px;"></p>
+            <button class="modal-btn" onclick="copyShareLink()" style="margin-bottom: 10px; background: #fe2c55;">Копировать ссылку</button>
+            <button class="modal-btn" onclick="shareInTelegram()" style="margin-bottom: 10px; background: #0088cc;">Поделиться в Telegram</button>
+            <button class="modal-btn" onclick="closeShareModal()" style="background: #333;">Закрыть</button>
         </div>
     </div>
 
@@ -599,7 +618,7 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
         </div>
         <div class="nav-item" onclick="showSettings()" id="nav-settings">
             <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L3.16 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-            <span>Настройки</span>
+            <span>Инструменты</span>
         </div>
     </div>
 
@@ -640,10 +659,36 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
             'video/20.mp4'
         ];
 
+        // Deep link handling - check for startapp parameter
+        function handleDeepLink() {
+            const initData = window.Telegram && Telegram.WebApp ? Telegram.WebApp.initDataUnsafe : null;
+            let videoId = null;
+
+            if (initData && initData.start_param) {
+                videoId = initData.start_param;
+            }
+
+            if (!videoId) {
+                const hash = window.location.hash.replace('#', '');
+                const urlParams = new URLSearchParams(window.location.search);
+                videoId = hash || urlParams.get('startapp') || urlParams.get('video');
+            }
+
+            return videoId;
+        }
+
+        const deepLinkVideoId = handleDeepLink();
+
         // Показываем прелоадер
         setTimeout(() => {
             document.getElementById('preloader').classList.add('hidden');
             document.getElementById('video-feed').classList.add('active');
+
+            // If deep link video ID is present, load single video mode
+            if (deepLinkVideoId) {
+                loadSingleVideo(deepLinkVideoId);
+                return;
+            }
 
             // Через 0.5 секунды показываем модальное окно
             setTimeout(() => {
@@ -712,6 +757,10 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
                 slide.className = 'video-slide';
                 slide.dataset.index = index + 1; // +1 потому что 0 - приветственный слайд
 
+                // Generate unique 6-digit video ID (100000 + index)
+                const videoId = String(100000 + index);
+                slide.dataset.videoid = videoId;
+
                 const loading = document.createElement('div');
                 loading.className = 'video-loading';
                 loading.id = 'loading-' + (index + 1);
@@ -764,7 +813,7 @@ l0 222 -31 28 c-88 84 -151 193 -179 312 -14 56 -17 97 -12 185 8 177 56 285
                         <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         <span>${formatNum(comments)}</span>
                     </div>
-                    <div class="side-action" onclick="showAuthModal()">
+                    <div class="side-action" onclick="showShareModal('${videoId}')">
                         <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
                         <span>Поделиться</span>
                     </div>
@@ -958,7 +1007,7 @@ function submitUsername() {
             document.getElementById(activeId).classList.add('active');
         }
 
-function continueUser() {
+        function continueUser() {
             document.getElementById('continue-modal').classList.remove('active');
             showMsgBadge();
             loadVideos();
@@ -969,11 +1018,180 @@ function continueUser() {
             showAuthModal();
         }
 
+        let currentShareVideoId = '';
+
+        function showShareModal(videoId) {
+            currentShareVideoId = videoId;
+            const link = 'https://t.me/TikRayBot/app?startapp=' + videoId;
+            document.getElementById('share-link-text').textContent = link;
+            document.getElementById('share-modal').classList.add('active');
+        }
+
+        function closeShareModal() {
+            document.getElementById('share-modal').classList.remove('active');
+            currentShareVideoId = '';
+        }
+
+        function copyShareLink() {
+            const link = 'https://t.me/TikRayBot/app?startapp=' + currentShareVideoId;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(link).then(() => {
+                    closeShareModal();
+                }).catch(() => {
+                    fallbackCopy(link);
+                });
+            } else {
+                fallbackCopy(link);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+            } catch (err) {}
+            document.body.removeChild(textarea);
+            closeShareModal();
+        }
+
+        function shareInTelegram() {
+            const link = 'https://t.me/TikRayBot/app?startapp=' + currentShareVideoId;
+            const text = encodeURIComponent('Посмотри это видео!');
+            const url = encodeURIComponent(link);
+            window.open('https://t.me/share/url?url=' + url + '&text=' + text, '_blank');
+        }
+
+        function loadSingleVideo(videoId) {
+            const index = parseInt(videoId) - 100000;
+
+            if (index < 0 || index >= videoFiles.length) {
+                loadVideos();
+                return;
+            }
+
+            videosLoaded = true;
+            const wrapper = document.getElementById('videos-wrapper');
+            wrapper.innerHTML = '';
+
+            // Disable scrolling
+            wrapper.style.overflowY = 'hidden';
+            wrapper.style.scrollSnapType = 'none';
+
+            const src = videoFiles[index];
+            const slide = document.createElement('div');
+            slide.className = 'video-slide';
+            slide.style.height = '100vh';
+            slide.style.width = '100vw';
+
+            const loading = document.createElement('div');
+            loading.className = 'video-loading';
+            loading.innerHTML = '<div class="spinner"></div><div>Загрузка...</div>';
+
+            const video = document.createElement('video');
+            video.src = src;
+            video.loop = true;
+            video.playsInline = true;
+            video.muted = true;
+            video.preload = 'auto';
+            video.setAttribute('playsinline', '');
+            video.setAttribute('webkit-playsinline', '');
+            video.setAttribute('x5-playsinline', '');
+            video.style.display = 'none';
+            video.controls = false;
+            video.poster = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+            const comments = Math.floor(Math.random() * 500) + 10;
+            const likes = comments * 5 + Math.floor(Math.random() * comments);
+            const formatNum = (n) => n >= 1000 ? (n/1000).toFixed(1).replace(/\.0$/, '') + 'K' : n;
+
+            const videoInfo = document.createElement('div');
+            videoInfo.className = 'video-info';
+            const usernames = [
+                'bestvideos54', 'funnyclips99', 'trendsetter22', 'memeking77',
+                'dancemaster33', 'viralcontent11', 'lifestyleguru88', 'techreviewer44',
+                'foodiequeen66', 'travelbug55', 'fitnessfreak20', 'gamingpro30',
+                'musiclover12', 'artisticmind45', 'comedyclub78', 'petlover89',
+                'fashionista21', 'sciencegeek67', 'motivationhub90', 'storyteller01'
+            ];
+            const videoUsername = usernames[index % usernames.length];
+            videoInfo.innerHTML = `
+                <div class="username">@${videoUsername}</div>
+                <div class="description">Рекомендации пользователя @${localStorage.getItem('tiktok_username') || 'user'}</div>
+            `;
+
+            const sideActions = document.createElement('div');
+            sideActions.className = 'side-actions';
+            sideActions.innerHTML = `
+                <div class="side-action" onclick="showAuthModal()">
+                    <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    <span>${formatNum(likes)}</span>
+                </div>
+                <div class="side-action" onclick="showAuthModal()">
+                    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span>${formatNum(comments)}</span>
+                </div>
+                <div class="side-action" onclick="showShareModal('${videoId}')">
+                    <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+                    <span>Поделиться</span>
+                </div>
+            `;
+
+            // Add deep-link action buttons overlay
+            const actionOverlay = document.createElement('div');
+            actionOverlay.style.cssText = 'position:absolute;bottom:100px;left:16px;right:16px;z-index:60;display:flex;gap:12px;justify-content:center;';
+            actionOverlay.innerHTML = `
+                <button onclick="showAuthModal()" style="flex:1;padding:14px;border-radius:10px;border:none;background:#fe2c55;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;">Войти</button>
+                <button onclick="closeWebApp()" style="flex:1;padding:14px;border-radius:10px;border:none;background:#333;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;">Закрыть</button>
+            `;
+
+            video.addEventListener('loadeddata', () => {
+                loading.style.display = 'none';
+                video.style.display = 'block';
+                video.play().catch(() => {});
+            });
+
+            video.addEventListener('canplay', () => {
+                loading.style.display = 'none';
+                video.style.display = 'block';
+            });
+
+            video.addEventListener('error', () => {
+                loading.innerHTML = '<div style="color:#555">Видео не найдено</div>';
+            });
+
+            slide.appendChild(loading);
+            slide.appendChild(video);
+            slide.appendChild(videoInfo);
+            slide.appendChild(sideActions);
+            slide.appendChild(actionOverlay);
+            wrapper.appendChild(slide);
+
+            // Apply global sound state
+            video.muted = !globalSoundEnabled;
+            updateGlobalSoundButton();
+        }
+
+        function closeWebApp() {
+            if (window.Telegram && Telegram.WebApp) {
+                Telegram.WebApp.close();
+            } else {
+                window.close();
+            }
+        }
+
         // Закрытие модалок при клике вне
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay && overlay.id !== 'username-modal' && overlay.id !== 'continue-modal') {
                     overlay.classList.remove('active');
+                    if (overlay.id === 'share-modal') {
+                        currentShareVideoId = '';
+                    }
                 }
             });
         });
